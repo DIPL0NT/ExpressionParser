@@ -126,55 +126,59 @@ typedef struct ExpressionString{
 	ExpressionElementType last_type;
 } ExpressionString;
 
+//checks parenthesization and strips whitespace
+//wraps the entire expression in parentheses for good measure
 ExpressionString create_ExpressionString(char* str){
-	//wraps the entire expression in parentheses for good measure
 	ExpressionString es = {2+strlen(str),0,NULL,OPENPAR};
 	es.str = malloc( (es.len+1)*sizeof(char) );
 	//if (!es.str) ...
-	es.str[0] = '(';
-	es.str++;
+	int i = 0;
+	es.str[i++] = '(';
 	int parenthesis_count=0;
-	int i=0;
-	while (str[i]!='\0'){
-		if (str[i]==')'){
+	int j=0;
+	while (str[j]!='\0'){
+		if (isWhiteSpace(str[j])){ //skip whitespace to strip whitespace
+			j++;
+			continue;
+		}
+		if (str[j]==')'){
 			if (parenthesis_count<1){
-				printf("Parenthesization error in expression string: %s (surplus closed parenthesis in position %d)\n",str,i);
-				free(--es.str);
+				printf("Parenthesization error in expression string: %s (surplus closed parenthesis in position %d)\n",str,j);
+				free(es.str);
 				es.str=NULL;
 				return es;
 			}
 			parenthesis_count--;
 		}
-		if (str[i]=='('){
+		if (str[j]=='('){
 			parenthesis_count++;
 		}
-		es.str[i] = str[i];
-		i++;
+		es.str[i++] = str[j++];
 	}
 
 	if (parenthesis_count>0){
 		printf("Parenthesization error in expression string: %s (missing closed parenthesis in position %d, the end of the string)\n",str,i-1);
-		free(--es.str);
+		free(es.str);
 		es.str=NULL;
 		return es;
 	}
 	
 	es.str[i] = ')';
 	es.str[i+1] = '\0';
-	es.str--;
+	es.str;
 
 	return es;
 }
 
-
-
-//WORKS ON ASSUMPTION THAT OPERANDS AND OPERATORS 
+//ASSUMPTION: es->str has been stripped of all whitespace
+//CUSTOMIZE isOperandChar() BASED ON THE STRING FORMAT FOR THE TYPE OF VALUE OF THE OPERANDS
+//WORKS ON ASSUMPTION THAT ANY CHAR THAT ISN'T '\0', '(', ')', AND DOESN'T GET RECOGNIZED BY isWhiteSpace() AND isOperandChar() MUST BE PART OF AN OPERATOR SYMBOL
 ExpressionElement get_next_ExpressionElement_from_ExpressionString(ExpressionString *es){
 	ExpressionElement el = {NULLTERM,NULL};
 
 	int i = es->index;
-	while (isWhiteSpace(es->str[i])) i++;
-	es->index = i;
+	//while (isWhiteSpace(es->str[i])) i++;
+	//es->index = i;
 	
 	if (es->str[i]=='\0'){
 		el.type = NULLTERM;
@@ -208,7 +212,7 @@ ExpressionElement get_next_ExpressionElement_from_ExpressionString(ExpressionStr
 		return el;
 	}
 
-	while (!isWhiteSpace(es->str[i]) && !isOperandChar(es->str[i]) && es->str[i]!='('
+	while (/*!isWhiteSpace(es->str[i]) &&*/ !isOperandChar(es->str[i]) && es->str[i]!='('
 			&&es->str[i]!=')' &&es->str[i]!='\0') i++;
 	
 	char tmp = es->str[i];
@@ -241,8 +245,8 @@ typedef struct ExpressionTreeNode{
 
 void free_ExpressionTree(ExpressionTreeNode *root){
 	if (!root) return;
-	if (!root->left && !root->right){ //the node is a leaf so the element it contains is a fraction (allocated on heap)
-		if (root->element.type==OPERAND) free_Operand(root->element.data);
+	if (!root->left && !root->right){ //the node is a leaf so the element it contains is an operand (allocated on heap)
+		release_ExpressionElement(root->element);
 		return; 
 	}
 	free_ExpressionTree(root->left);
