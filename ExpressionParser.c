@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
+//#include <math.h>
 
 
 //could create a tree
@@ -38,21 +38,53 @@
 	   right child
 	*/
 
+typedef enum{PREFIX,INFIX,POSTFIX} Fix;
 
 typedef struct Operator{
 	char* symbol;
-	int arity;
+	int arity; //0, 1, 2
+	Fix fix; //0: prefix, 1: infix
 	int precedence;
+	//function pointer?
 } Operator;
 
-const Operator sumOp  = {"+"		,2,0};
-const Operator subOp  = {"-"		,2,0};
-const Operator multOp = {"*"		,2,1};
-const Operator divOp  = {"/"		,2,1};
-const Operator sqrtOp = {"sqrt"		,1,2};
-const Operator powOp  = {"**"		,2,2};
+//reserved chars '\0', '(', ')', ','
+//supported arities: 0, 1, 2
+
+const Operator sumOp  = {"+"		,2,INFIX,0};
+const Operator subOp  = {"-"		,2,INFIX,0};
+const Operator multOp = {"*"		,2,INFIX,1};
+const Operator divOp  = {"/"		,2,INFIX,1};
+const Operator sqrtOp = {"sqrt"		,1,PREFIX,2};
+const Operator powOp  = {"**"		,2,INFIX,2};
 #define NUMofOPERATORS 6
 Operator *operators[NUMofOPERATORS] = {&sumOp,&subOp,&multOp,&divOp,&sqrtOp,&powOp};
+
+void print_avalaible_Operators(){
+	printf("Available operations:\n");
+	for (int i=0;i<NUMofOPERATORS;i++){
+		printf(" Symbol: \"%s\", Arity: %d, Fix: %s, Precedence: %d\n"
+				,operators[i]->symbol
+				,operators[i]->arity
+				,operators[i]->fix==PREFIX?"PREFIX":(
+						operators[i]->fix==INFIX?"INFIX":(
+							operators[i]->fix==POSTFIX?"POSTFIX":"ERROR"
+						)
+					)
+				,operators[i]->precedence
+			);
+	}
+	return;
+}
+
+int isOperatorChar(char c){
+	for (int i=0;i<NUMofOPERATORS;i++){
+		for (int j=0;operators[i]->symbol[j]!='\0';j++){
+			if (c==operators[i]->symbol[j]) return 1;
+		}
+	}
+	return 0;
+}
 
 typedef struct Operand{
 	//type or smth?
@@ -72,16 +104,56 @@ void free_Operand(Operand *operand){
 }
 
 int isWhiteSpace(char c){
-	if (c==' '||c=='\t'||c=='\n') return 1;
+	if (c==' '||c=='\t'||c=='\n'||c=='\r') return 1;
 	return 0;
 }
 
+//reserverd chars: '\0', '(', ')', ',' and all the operators chars
 int isOperandChar(char c){
 	if (c=='.'|| c>='0'&&c<='9' ) return 1;
 	return 0;
 }
 
-typedef enum{NULLTERM,OPENPAR,CLOSEPAR,OPERATOR,OPERAND} ExpressionElementType;
+/*
+* Use at the beginning of main() to check that:
+* 	1) Operator symbols don't include one of the reserved chars '\0', '(', ')', ','
+* 	2) Operand string format doesn't include one the reserved chars '\0', '(', ')', ','
+* 	3) No char is both in an Operator symbol and in the Operand string format
+*/
+int checkCompatibilityOperatorAndOperandChars(){
+	if (
+		isOperatorChar('\0') || isOperatorChar('(') || isOperatorChar(')') || isOperatorChar(',')
+	){
+		printf("ERROR in Operator symbols definition: a reserved char ('\\0','(',')',',') is recognized as an Operator char by isOperatorChar()\n");
+		return 0;
+	}
+	if (
+		isOperandChar('\0') || isOperandChar('(') || isOperandChar(')') || isOperandChar(',')
+	){
+		printf("ERROR in Operand string format definition: a reserved char ('\\0','(',')',',') is recognized as an Operand char by isOperandChar()\n");
+		return 0;
+	}
+	
+	for (int i=0;i<256;i++){
+		if (
+			(char)i != '\0' && (char)i != '(' &&(char)i != ')' && (char)i != ','
+			&& isOperatorChar((char)i) && isOperandChar((char)i)
+		){
+			printf("ERROR due to incompatible Operator symbols and Operand string format definitions: char %c is recognized both as an Operator char by isOperatorChar() and as an Operand char by isOperandChar()\n",(char)i);
+			return 0;
+		}
+	}
+	printf("CORRECT Operator symbols and Operand string format definitions\n");
+	return 1;
+}
+
+void print_Operand(Operand *o){
+	float f = o->value;
+	printf("%f",f);
+	return;
+}
+
+typedef enum{NULLTERM,OPENPAR,CLOSEPAR,COMMA,OPERATOR,OPERAND} ExpressionElementType;
 
 typedef struct ExpressionElement{
 	ExpressionElementType type;
@@ -108,12 +180,17 @@ void print_ExpressionElement(ExpressionElement el){
 		printf(")");
 		return;
 	}
+	if (el.type==COMMA){
+		printf(",");
+		return;
+	}
 	if (el.type==OPERATOR){
 		printf("%s",((Operator*)el.data)->symbol);
 		return;
 	}
 	if (el.type==OPERAND){
-		printf("%f",((Operand*)el.data)->value);
+		//printf("%f",((Operand*)el.data)->value);
+		print_Operand((Operand*)el.data);
 		return;
 	}
 	return;
@@ -153,6 +230,11 @@ ExpressionString create_ExpressionString(char* str){
 		if (str[j]=='('){
 			parenthesis_count++;
 		}
+		/*
+		if (str[j]==','){
+
+		}
+		*/
 		es.str[i++] = str[j++];
 	}
 
@@ -170,7 +252,18 @@ ExpressionString create_ExpressionString(char* str){
 	return es;
 }
 
-//ASSUMPTION: es->str has been stripped of all whitespace
+//takes as input the string format of an operand and returns pointer to newly allocated operand
+//eg if operands are float the input will be "%f" and sscanf() will be used to parse
+void *parseOperandToVoidPtr(char *s){
+	float f;
+	sscanf(s,"%f",&f);
+	return (void*) alloc_Operand(f);
+}
+
+/*ASSUMPTIONS: 1) es->str has been stripped of all whitespace.
+			   2) chars that are the first char of an operator symbol
+			   	  can't appear in the string formats of the operands.
+*/
 //CUSTOMIZE isOperandChar() BASED ON THE STRING FORMAT FOR THE TYPE OF VALUE OF THE OPERANDS
 //WORKS ON ASSUMPTION THAT ANY CHAR THAT ISN'T '\0', '(', ')', AND DOESN'T GET RECOGNIZED BY isWhiteSpace() AND isOperandChar() MUST BE PART OF AN OPERATOR SYMBOL
 ExpressionElement get_next_ExpressionElement_from_ExpressionString(ExpressionString *es){
@@ -198,22 +291,31 @@ ExpressionElement get_next_ExpressionElement_from_ExpressionString(ExpressionStr
 		es->index = i+1;
 		return el;
 	}
+	if (es->str[i]==','){
+		el.type = COMMA;
+		el.data = NULL;
+		es->index = i+1;
+		return el;
+	}
 
 	while (isOperandChar(es->str[i])) i++;
 	if (i!=es->index){ //the character encountered was the beginning of a operand token
 		char tmp = es->str[i];
 		es->str[i] = '\0';
 		el.type = OPERAND;
+		/*
 		float f;
 		sscanf(es->str+es->index,"%f",&f);
 		el.data = (void*) alloc_Operand(f);
+		*/
+		el.data = parseOperandToVoidPtr(es->str+es->index);
 		es->str[i] = tmp;
 		es->index = i;
 		return el;
 	}
 
-	while (/*!isWhiteSpace(es->str[i]) &&*/ !isOperandChar(es->str[i]) && es->str[i]!='('
-			&&es->str[i]!=')' &&es->str[i]!='\0') i++;
+	while (/*!isWhiteSpace(es->str[i]) &&*/ !isOperandChar(es->str[i]) &&es->str[i]!='('
+			&&es->str[i]!=')' &&es->str[i]!=',' &&es->str[i]!='\0') i++;
 	
 	char tmp = es->str[i];
 	es->str[i] = '\0';
@@ -239,10 +341,56 @@ ExpressionElement get_next_ExpressionElement_from_ExpressionString(ExpressionStr
 typedef struct ExpressionTreeNode{
 	struct ExpressionTreeNode *root;
 	ExpressionElement element;
-	struct ExpressionTreeNode *left;
-	struct ExpressionTreeNode *right;
+	struct ExpressionTreeNode **args;
 } ExpressionTreeNode;
 
+ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionElement el){
+	ExpressionTreeNode *newNode = (ExpressionTreeNode*) malloc(sizeof(ExpressionTreeNode));
+	//if (!newNode) ...
+	newNode->root = root;
+	newNode->element = el;
+	if (el.type==OPERATOR ){
+		if (((Operator*)el.data)->arity>0){
+			newNode->args = (ExpressionTreeNode**) malloc( ((Operator*)el.data)->arity * sizeof(ExpressionTreeNode*) );
+			//if (!newNode->args) ...
+			for (int i=0;i<((Operator*)el.data)->arity;i++){
+				newNode->args[i] = NULL;
+			}
+		}
+		else{
+			newNode->args = NULL;
+		}
+	}
+	else if (el.type==OPERAND){
+		newNode->args = NULL;
+	}
+	//it should never happen that el is of type NULLTERM, OPENPAR, CLOSEPAR
+
+	return newNode;
+}
+
+void free_ExpressionTreeNode(ExpressionTreeNode* node){
+	if (node->element.type==OPERAND){
+		release_ExpressionElement(node->element);
+		//node->args should be NULL
+		free(node);
+		return;
+	}
+	else if (node->element.type==OPERATOR){
+		for (int i=0;i<((Operator*)node->element.data)->arity;i++){
+			free_ExpressionTreeNode(node->args[i]);
+		}
+		release_ExpressionElement(node->element);
+		if (node->args) free(node->args); //need to check that it isn't NULL for operators with arity 0
+		free(node);
+		return;
+	}
+	//it should never happen that el is of type NULLTERM, OPENPAR, CLOSEPAR
+
+	return;
+}
+
+/*
 void free_ExpressionTree(ExpressionTreeNode *root){
 	if (!root) return;
 	if (!root->left && !root->right){ //the node is a leaf so the element it contains is an operand (allocated on heap)
@@ -254,30 +402,10 @@ void free_ExpressionTree(ExpressionTreeNode *root){
 	free(root);
 	return;
 }
+*/
 
-ExpressionTreeNode *create_tree_from_expression_string(char* expression){
-	
+ExpressionTreeNode *create_ExpressionTree_from_ExpressionString(ExpressionString es){
+
 }
 
 
-int main(){
-
-	printf("Available operations:\n");
-	for (int i=0;i<NUMofOPERATORS;i++){
-		printf(" Symbol: %s Arity: %d Precedence: %d\n",operators[i]->symbol,operators[i]->arity,operators[i]->precedence);
-	}
-
-	char input[] = "(0.1/(4+.2)+5.7)";
-	printf("Input: %s\n",input);
-	ExpressionString es = create_ExpressionString(input);
-	printf("ExpressionString: %s\n",es.str);
-	ExpressionElement el = {NULLTERM,NULL};
-	printf("Parsed tokens: ");
-	while ( (el = get_next_ExpressionElement_from_ExpressionString(&es)).type!=NULLTERM ){
-		print_ExpressionElement(el);
-		printf(" ");
-	}
-	printf("\n");
-
-	return 0;
-}
