@@ -53,6 +53,28 @@ typedef struct ExpressionTreeNode{
 	ExpressionTreeNode_List args;   //list of child nodes
 } ExpressionTreeNode;
 
+ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionElement el){
+	ExpressionTreeNode *newNode = (ExpressionTreeNode*) malloc(sizeof(ExpressionTreeNode));
+	//if (!newNode) ...
+	newNode->root = root;
+	newNode->element = el;
+	newNode->args.head = NULL; //{NULL,0};
+	newNode->args.count = 0;
+	return newNode;
+}
+
+//implemented further down
+//damned circular dependencies
+void free_ExpressionTreeNode_List(ExpressionTreeNode_List list);
+
+void free_ExpressionTreeNode(ExpressionTreeNode* node){
+	//if (!node) ...
+	free_ExpressionTreeNode_List(node->args);
+	release_ExpressionElement(node->element);
+	free(node);
+	return;
+}
+
 ExpressionTreeNode_List create_ExpressionTreeNode_List(){
 	ExpressionTreeNode_List list;
 	list.head = NULL;
@@ -91,34 +113,17 @@ void free_ExpressionTreeNode_List(ExpressionTreeNode_List list){
 	return;
 }
 
-ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionElement el){
-	ExpressionTreeNode *newNode = (ExpressionTreeNode*) malloc(sizeof(ExpressionTreeNode));
-	//if (!newNode) ...
-	newNode->root = root;
-	newNode->element = el;
-	newNode->args.head = NULL; //{NULL,0};
-	newNode->args.count = 0;
-	return newNode;
-}
 
-void free_ExpressionTreeNode(ExpressionTreeNode* node){
-	//if (!node) ...
-	free_ExpressionTreeNode_List(node->args);
-	release_ExpressionElement(node->element);
-	free(node);
-	return;
-}
 
 //Maybe implement ExpressionTreeNode.args as a list of nodes that keeps track of its size
 // so that args can be added before encountering the operator in case of INFIX or POSTFIX operators,
 // when encountering the operator compare operator arity and current args list size
 
 ExpressionTreeNode *create_ExpressionTree_from_ExpressionString(ExpressionString *es,ExpressionTreeNode *root){
-	
+
 
 
 
 }
-
 
 
