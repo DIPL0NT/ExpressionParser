@@ -41,10 +41,10 @@
 typedef enum{PREFIX,INFIX,POSTFIX} Fix;
 
 typedef struct Operator{
-	char* symbol;
-	int arity; //0, 1, 2
-	Fix fix; //0: prefix, 1: infix
-	int precedence;
+	const char* symbol;
+	const int arity; //0, 1, 2
+	const Fix fix; //0: prefix, 1: infix
+	const int precedence;
 	//function pointer?
 } Operator;
 
@@ -266,11 +266,15 @@ ExpressionString create_ExpressionString(char* str){
 }
 
 //takes as input the string format of an operand and returns pointer to newly allocated operand
+//in case of error returns NULL
 //eg if operands are float the input will be "%f" and sscanf() will be used to parse
-void *parseOperandToVoidPtr(char *s){
+void *parseOperandStringFormatToVoidPtr(char *s){
 	//for floats
-	float f;
-	sscanf(s,"%f",&f);
+	OPERAND_VALUE_TYPE f;
+	if (0==sscanf(s,"%f",&f)){
+		printf("ERROR in parseOperandStringFormatToVoidPtr() : couldn't parse %s\n",s);
+		return NULL;
+	}
 	return (void*) alloc_Operand(f);
 }
 
@@ -322,7 +326,7 @@ ExpressionElement get_next_ExpressionElement_from_ExpressionString(ExpressionStr
 		sscanf(es->str+es->index,"%f",&f);
 		el.data = (void*) alloc_Operand(f);
 		*/
-		el.data = parseOperandToVoidPtr(es->str+es->index);
+		el.data = parseOperandStringFormatToVoidPtr(es->str+es->index);
 		es->str[i] = tmp;
 		es->index = i;
 		return el;
@@ -421,4 +425,5 @@ void free_ExpressionTree(ExpressionTreeNode *root){
 ExpressionTreeNode *create_ExpressionTree_from_ExpressionString(ExpressionString es){
 
 }
+
 
