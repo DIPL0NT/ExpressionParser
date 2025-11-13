@@ -1,0 +1,49 @@
+//TODO REWRITE CONSIDERING THAT args IS A ExpressionTreeNode_List POINTER
+ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionElement el){
+	ExpressionTreeNode *newNode = (ExpressionTreeNode*) malloc(sizeof(ExpressionTreeNode));
+	//if (!newNode) ...
+	newNode->root = root;
+	newNode->element = el;
+	if (el.type==OPERATOR ){
+		if (((Operator*)el.data)->arity>0){
+			//newNode->args = (ExpressionTreeNode**) malloc( ((Operator*)el.data)->arity * sizeof(ExpressionTreeNode*) );
+			//if (!newNode->args) ...
+			for (int i=0;i<((Operator*)el.data)->arity;i++){
+				//newNode->args[i] = NULL;
+			}
+		}
+		else{
+			newNode->args = NULL;
+		}
+	}
+	else if (el.type==OPERAND){
+		newNode->args = NULL;
+	}
+	//it should never happen that el is of type NULLTERM, OPENPAR, CLOSEPAR, COMMA
+
+	return newNode;
+}
+
+//TODO REWRITE CONSIDERING THAT args IS A ExpressionTreeNode_List POINTER
+void free_ExpressionTreeNode(ExpressionTreeNode* node){
+	if (node->element.type==OPERAND){
+		release_ExpressionElement(node->element);
+		//node->args should be NULL
+		free(node);
+		return;
+	}
+	else if (node->element.type==OPERATOR){
+		for (int i=0;i<((Operator*)node->element.data)->arity;i++){
+			//free_ExpressionTreeNode(node->args[i]);
+		}
+		release_ExpressionElement(node->element);
+		if (node->args) free(node->args); //need to check that it isn't NULL for operators with arity 0
+		free(node);
+		return;
+	}
+	//it should never happen that el is of type NULLTERM, OPENPAR, CLOSEPAR, COMMA
+
+	return;
+}
+
+
