@@ -20,10 +20,10 @@ int main(){
 	}
 	printf("\n");
 
+	float a = 2.0f;
+	float b = 2.0f;
+	printf("%f %s %f = %f \n",a,sumOp.symbol,b, ( (float(*)(float,float))sumOp.function )(a,b) );
+
 	return 0;
 }
-
-
-
-
 

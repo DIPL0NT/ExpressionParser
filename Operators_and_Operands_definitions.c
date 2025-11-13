@@ -1,32 +1,60 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <math.h>
+#include <math.h>
 
 int isWhiteSpace(char c){
 	if (c==' '||c=='\t'||c=='\n'||c=='\r') return 1;
 	return 0;
 }
 
-typedef enum{PREFIX,INFIX,POSTFIX} Fix;
+#define OPERAND_VALUE_TYPE float
 
+float sumFunc(float f1,float f2){
+	return f1+f2;
+}
+
+float subFunc(float f1,float f2){
+	return f1-f2;
+}
+
+float multFunc(float f1,float f2){
+	return f1*f2;
+}
+
+float divFunc(float f1,float f2){
+	return f1/f2;
+}
+
+float sqrtFunc(float f){
+	return sqrt(f);
+}
+
+float powFunc(float f1,float f2){
+	return pow(f1,f2);
+}
+
+typedef enum{PREFIX,INFIX,POSTFIX} Fix;
 typedef struct Operator{
 	const char* symbol;
 	const int arity; //0, 1, 2
 	const Fix fix; //0: prefix, 1: infix
 	const int precedence;
-	//function pointer?
+	//OPERAND_VALUE_TYPE (*function) HOW TO MAKE IT GENERIC IN RELATION TO ARITY
+	//void* (*function)(void);
+	OPERAND_VALUE_TYPE (*function)(void); //to be cast according to the arity of the actual function
+	                                      //eg if arity==2: ( (OPERAND_VALUE_TYPE(*)(OPERAND_VALUE_TYPE,OPERAND_VALUE_TYPE)) operator.function)(arg1,arg2)
 } Operator;
 
 //reserved chars '\0', '(', ')', ','
 //supported arities: 0, 1, 2
-
-const Operator sumOp  = {"+"		,2,INFIX    ,0};
-const Operator subOp  = {"-"		,2,INFIX    ,0};
-const Operator multOp = {"*"		,2,INFIX    ,1};
-const Operator divOp  = {"/"		,2,INFIX    ,1};
-const Operator sqrtOp = {"sqrt"		,1,PREFIX   ,2};
-const Operator powOp  = {"**"		,2,INFIX    ,2};
+//                       symbol   arity  fix     precedence   function
+const Operator sumOp  = {"+"	 ,2     ,INFIX  ,0          , (OPERAND_VALUE_TYPE(*)(void))sumFunc	};
+const Operator subOp  = {"-"	 ,2     ,INFIX  ,0          , (OPERAND_VALUE_TYPE(*)(void))subFunc	};
+const Operator multOp = {"*"	 ,2     ,INFIX  ,1          , (OPERAND_VALUE_TYPE(*)(void))multFunc	};
+const Operator divOp  = {"/"     ,2     ,INFIX  ,1          , (OPERAND_VALUE_TYPE(*)(void))divFunc	};
+const Operator sqrtOp = {"sqrt"	 ,1     ,PREFIX ,2          , (OPERAND_VALUE_TYPE(*)(void))sqrtFunc	};
+const Operator powOp  = {"**"	 ,2     ,INFIX  ,2          , (OPERAND_VALUE_TYPE(*)(void))powFunc	};
 #define NUMofOPERATORS 6
 Operator *operators[NUMofOPERATORS] = {&sumOp,&subOp,&multOp,&divOp,&sqrtOp,&powOp};
 
@@ -56,9 +84,8 @@ void print_avalaible_Operators(){
 	return;
 }
 
-#define OPERAND_VALUE_TYPE float
+//#define OPERAND_VALUE_TYPE float
 typedef struct Operand{
-	//type or smth?
 	OPERAND_VALUE_TYPE value;
 } Operand;
 
@@ -90,7 +117,7 @@ void *parseOperandStringFormatToVoidPtr(char *s){
 }
 
 void release_OperandValue(OPERAND_VALUE_TYPE value){
-	//do nothing for floats
+	//for floats do nothing
 	return;
 }
 
@@ -143,6 +170,9 @@ int checkCompatibilityOperatorAndOperandChars(){
 	printf("CORRECT Operator symbols and Operand string format definitions\n");
 	return 1;
 }
+
+
+
 
 
 

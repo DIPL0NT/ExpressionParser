@@ -60,7 +60,7 @@ ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,Expression
 	else if (el.type==OPERAND){
 		newNode->args = NULL;
 	}
-	//it should never happen that el is of type NULLTERM, OPENPAR, CLOSEPAR
+	//it should never happen that el is of type NULLTERM, OPENPAR, CLOSEPAR, COMMA
 
 	return newNode;
 }
@@ -81,29 +81,14 @@ void free_ExpressionTreeNode(ExpressionTreeNode* node){
 		free(node);
 		return;
 	}
-	//it should never happen that el is of type NULLTERM, OPENPAR, CLOSEPAR
+	//it should never happen that el is of type NULLTERM, OPENPAR, CLOSEPAR, COMMA
 
 	return;
 }
 
-/*
-void free_ExpressionTree(ExpressionTreeNode *root){
-	if (!root) return;
-	if (!root->left && !root->right){ //the node is a leaf so the element it contains is an operand (allocated on heap)
-		release_ExpressionElement(root->element);
-		return; 
-	}
-	free_ExpressionTree(root->left);
-	free_ExpressionTree(root->right);
-	free(root);
-	return;
-}
-*/
-
-ExpressionTreeNode *create_ExpressionTree_from_ExpressionString(ExpressionString es){
+ExpressionTreeNode *create_ExpressionTree_from_ExpressionString(ExpressionString *es){
 
 }
-
 
 
 

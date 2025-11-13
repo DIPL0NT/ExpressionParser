@@ -36,7 +36,6 @@ void print_ExpressionElement(ExpressionElement el){
 		return;
 	}
 	if (el.type==OPERAND){
-		//printf("%f",((Operand*)el.data)->value);
 		print_Operand((Operand*)el.data);
 		return;
 	}
@@ -109,8 +108,6 @@ ExpressionElement get_next_ExpressionElement_from_ExpressionString(ExpressionStr
 	ExpressionElement el = {NULLTERM,NULL};
 
 	int i = es->index;
-	//while (isWhiteSpace(es->str[i])) i++;
-	//es->index = i;
 	
 	if (es->str[i]=='\0'){
 		el.type = NULLTERM;
@@ -142,18 +139,13 @@ ExpressionElement get_next_ExpressionElement_from_ExpressionString(ExpressionStr
 		char tmp = es->str[i];
 		es->str[i] = '\0';
 		el.type = OPERAND;
-		/*
-		float f;
-		sscanf(es->str+es->index,"%f",&f);
-		el.data = (void*) alloc_Operand(f);
-		*/
 		el.data = parseOperandStringFormatToVoidPtr(es->str+es->index);
 		es->str[i] = tmp;
 		es->index = i;
 		return el;
 	}
 
-	while (/*!isWhiteSpace(es->str[i]) &&*/ !isOperandChar(es->str[i]) &&es->str[i]!='('
+	while ( !isOperandChar(es->str[i]) &&es->str[i]!='('
 			&&es->str[i]!=')' &&es->str[i]!=',' &&es->str[i]!='\0') i++;
 	
 	char tmp = es->str[i];
@@ -175,5 +167,8 @@ ExpressionElement get_next_ExpressionElement_from_ExpressionString(ExpressionStr
 	el.data = NULL;
 	return el;
 }
+
+
+
 
 
