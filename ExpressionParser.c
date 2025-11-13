@@ -86,12 +86,18 @@ int isOperatorChar(char c){
 	return 0;
 }
 
+#define OPERAND_VALUE_TYPE float
 typedef struct Operand{
 	//type or smth?
-	float value;
+	OPERAND_VALUE_TYPE value;
 } Operand;
 
-Operand *alloc_Operand(float value){
+void release_OperandValue(OPERAND_VALUE_TYPE value){
+	//do nothing for floats
+	return;
+}
+
+Operand *alloc_Operand(OPERAND_VALUE_TYPE value){
 	Operand *o = malloc(sizeof(Operand));
 	//if (!o) ...
 	o->value = value;
@@ -99,6 +105,7 @@ Operand *alloc_Operand(float value){
 }
 
 void free_Operand(Operand *operand){
+	release_OperandValue(operand->value);
 	free(operand);
 	return;
 }
@@ -110,6 +117,7 @@ int isWhiteSpace(char c){
 
 //reserverd chars: '\0', '(', ')', ',' and all the operators chars
 int isOperandChar(char c){
+	//for floats
 	if (c=='.'|| c>='0'&&c<='9' ) return 1;
 	return 0;
 }
@@ -147,9 +155,14 @@ int checkCompatibilityOperatorAndOperandChars(){
 	return 1;
 }
 
+void print_OperandValue(OPERAND_VALUE_TYPE val){
+	//for floats
+	printf("%f",val);
+	return;
+}
+
 void print_Operand(Operand *o){
-	float f = o->value;
-	printf("%f",f);
+	print_OperandValue(o->value);
 	return;
 }
 
@@ -255,6 +268,7 @@ ExpressionString create_ExpressionString(char* str){
 //takes as input the string format of an operand and returns pointer to newly allocated operand
 //eg if operands are float the input will be "%f" and sscanf() will be used to parse
 void *parseOperandToVoidPtr(char *s){
+	//for floats
 	float f;
 	sscanf(s,"%f",&f);
 	return (void*) alloc_Operand(f);
@@ -407,5 +421,4 @@ void free_ExpressionTree(ExpressionTreeNode *root){
 ExpressionTreeNode *create_ExpressionTree_from_ExpressionString(ExpressionString es){
 
 }
-
 
