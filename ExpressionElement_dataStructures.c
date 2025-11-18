@@ -1,0 +1,134 @@
+#include "ExpressionElement_and_ExpressionString.c"
+
+
+typedef struct ExpressionTreeNode ExpressionTreeNode;
+
+typedef struct ExpressionTreeNode_ListNode{
+	ExpressionTreeNode *treeNode;
+	struct ExpressionTreeNode_ListNode *next;
+} ExpressionTreeNode_ListNode;
+
+typedef struct ExpressionTreeNode_List{
+	ExpressionTreeNode_ListNode *head;
+	ExpressionTreeNode_ListNode *tail;
+	int count;
+} ExpressionTreeNode_List;
+
+typedef struct ExpressionTreeNode{
+	struct ExpressionTreeNode *root; //parent node
+	ExpressionElement element;
+	ExpressionTreeNode_List args;   //list of child nodes
+} ExpressionTreeNode;
+
+ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionElement el){
+	ExpressionTreeNode *newNode = (ExpressionTreeNode*) malloc(sizeof(ExpressionTreeNode));
+	//if (!newNode) ...
+	newNode->root = root;
+	newNode->element = el;
+	newNode->args.head = NULL; //{NULL,0};
+	newNode->args.count = 0;
+	return newNode;
+}
+
+//implemented further down
+//damned circular dependencies
+void free_ExpressionTreeNode_List(ExpressionTreeNode_List *list);
+
+void free_ExpressionTreeNode(ExpressionTreeNode* node){
+	//if (!node) ...
+	free_ExpressionTreeNode_List(&node->args);
+	release_ExpressionElement(node->element);
+	free(node);
+	return;
+}
+
+ExpressionTreeNode_List create_ExpressionTreeNode_List(){
+	ExpressionTreeNode_List list;
+	list.head = NULL;
+	list.tail = NULL;
+	list.count = 0;
+	return list;
+}
+
+void addToTail_ExpressionTreeNode_List(ExpressionTreeNode_List *list,ExpressionTreeNode *treeNode){
+	ExpressionTreeNode_ListNode *newNode = (ExpressionTreeNode_ListNode*) malloc(sizeof(ExpressionTreeNode_ListNode));
+	//if (!newNode) ...
+	newNode->treeNode = treeNode;
+	newNode->next = NULL;
+
+	if (!list->head){
+		list->head = newNode;
+		list->tail = newNode;
+	}
+	else{
+		list->tail->next = newNode;
+		list->tail = newNode;
+	}
+	list->count++;
+	return;
+}
+
+void addToHead_ExpressionTreeNode_List(ExpressionTreeNode_List *list,ExpressionTreeNode *treeNode){
+	ExpressionTreeNode_ListNode *newNode = (ExpressionTreeNode_ListNode*) malloc(sizeof(ExpressionTreeNode_ListNode));
+	//if (!newNode) ...
+	newNode->treeNode = treeNode;
+	newNode->next = list->head;
+
+	list->head = newNode;
+	if (!list->tail){
+		list->tail = newNode;
+	}
+	else{
+		//nothing
+	}
+	list->count++;
+	return;
+}
+
+//TODO
+ExpressionTreeNode *removeTail_ExpressionTreeNode_List(ExpressionTreeNode_List *list){
+	//if (!list) return NULL; //should never happen anyway
+
+	ExpressionTreeNode_ListNode *tail = list->tail;
+	//if ()
+
+	//fuck this, too slow
+	return NULL;
+}
+
+ExpressionTreeNode *removeHead_ExpressionTreeNode_List(ExpressionTreeNode_List *list){
+	//if (!list) return NULL; //should never happen anyway
+
+	ExpressionTreeNode_ListNode *head = list->head;
+	if (!head) return NULL; //empty list
+	if (list->count==1){ //list->head == list->tail
+		list->head = NULL;
+		list->tail = NULL;
+		list->count = 0;
+	}
+	else{
+		list->head = head->next;
+		list->count--;
+	}
+	
+	ExpressionTreeNode *resNode = head->treeNode;
+	free(head);
+
+	return resNode;
+}
+
+void free_ExpressionTreeNode_List(ExpressionTreeNode_List *list){
+	if (!list->head) return;
+	ExpressionTreeNode_ListNode* next = NULL;
+	while (list->head){
+		next = list->head->next;
+		free_ExpressionTreeNode(list->head->treeNode);
+		free(list->head);
+		list->head = next;
+	}
+	//list->head = NULL;
+	//list->tail = NULL;
+	//list->count = 0;
+	return;
+}
+

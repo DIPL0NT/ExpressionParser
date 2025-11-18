@@ -48,7 +48,6 @@ typedef struct ExpressionString{
 	int len;
 	int index;
 	char *str;
-	ExpressionElementType last_type;
 } ExpressionString;
 
 //checks parenthesization and strips whitespace
@@ -171,4 +170,70 @@ ExpressionElement get_next_ExpressionElement_from_ExpressionString(ExpressionStr
 }
 
 
+typedef struct{
+	ExpressionElement *array;
+	int capacity;
+	int count;
+	int index;
+} ExpressionElement_Vector;
+
+ExpressionElement_Vector *create_ExpressionElement_Vector(int initialCapacity){
+	ExpressionElement_Vector *newVec = (ExpressionElement_Vector*)malloc(sizeof(ExpressionElement_Vector));
+	newVec->array = (ExpressionElement*)malloc(initialCapacity*sizeof(ExpressionElement));
+	//if (!newVec->array) ...
+	newVec->capacity = initialCapacity;
+	newVec->index = 0;
+
+	return newVec;
+}
+
+void free_ExpressionElement_Vector(ExpressionElement_Vector *vec){
+	//if (!vec->array) ...
+	//if (vec->count>vec->size) ...
+
+	for(int i=0;i<vec->count;i++){
+		release_ExpressionElement(vec->array[i]);
+	}
+
+	free(vec->array);
+	free(vec);
+	return;
+}
+
+void addTo_ExpressionElement_Vector(ExpressionElement_Vector *vec,ExpressionElement el){
+	//if (!vec) ...
+	if (vec->count==vec->capacity){
+		ExpressionElement *newArray = (ExpressionElement*)malloc(vec->capacity*2*sizeof(ExpressionElement)); //magic number
+		for (int i=0;i<vec->count;i++){
+			newArray[i] = vec->array[i];
+		}
+		free(vec->array);
+		vec->capacity *= 2; //magic number
+	}
+	
+	vec->array[vec->count] = el;
+	vec->count++;
+	return;
+}
+
+ExpressionElement_Vector *create_ExpressionElement_Vector_from_ExpressionString(ExpressionString *es){
+	ExpressionElement_Vector *newVec = create_ExpressionElement_Vector(es->len/2); //magic number
+	//if (!newVec) ...
+
+	while (newVec->array[newVec->count-1].type!=NULLTERM){
+		addTo_ExpressionElement_Vector(newVec,get_next_ExpressionElement_from_ExpressionString(es));
+	}
+
+	return newVec;
+}
+
+ExpressionElement get_next_ExpressionElement_from_ExpressionElement_Vector(ExpressionElement_Vector *vec){
+	if (vec->count==0) return (ExpressionElement){NULLTERM,NULL};
+	if (vec->index>=vec->count){
+		//...
+		return (ExpressionElement){NULLTERM,NULL};
+	}
+
+	return vec->array[vec->index++];
+}
 
