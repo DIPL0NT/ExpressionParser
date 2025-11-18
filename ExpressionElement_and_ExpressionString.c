@@ -1,6 +1,8 @@
 #include "Operators_and_Operands_definitions.c"
 
-typedef enum{NULLTERM,OPENPAR,CLOSEPAR,COMMA,OPERATOR,OPERAND} ExpressionElementType;
+typedef enum{NULLTERM,OPENPAR,CLOSEPAR,COMMA,OPERATOR,OPERAND,EXPRESSIONTREENODE_LIST} ExpressionElementType;
+//EXPRESSIONTREENODE_LIST is to be used when creating the expression tree
+//, its data must be NULL since the actual list is referenced byt the TreeNode
 
 typedef struct ExpressionElement{
 	ExpressionElementType type;
@@ -167,8 +169,6 @@ ExpressionElement get_next_ExpressionElement_from_ExpressionString(ExpressionStr
 	el.data = NULL;
 	return el;
 }
-
-
 
 
 
