@@ -1,4 +1,4 @@
-#include "ExpressionElement_and_ExpressionString.c"
+#include "ExpressionToken_and_ExpressionString.c"
 
 
 typedef struct ExpressionTreeNode ExpressionTreeNode;
@@ -16,15 +16,15 @@ typedef struct ExpressionTreeNode_List{
 
 typedef struct ExpressionTreeNode{
 	struct ExpressionTreeNode *root; //parent node
-	ExpressionElement element;
+	ExpressionToken token;
 	ExpressionTreeNode_List args;   //list of child nodes
 } ExpressionTreeNode;
 
-ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionElement el){
+ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionToken tok){
 	ExpressionTreeNode *newNode = (ExpressionTreeNode*) malloc(sizeof(ExpressionTreeNode));
 	//if (!newNode) ...
 	newNode->root = root;
-	newNode->element = el;
+	newNode->token = tok;
 	newNode->args.head = NULL; //{NULL,0};
 	newNode->args.count = 0;
 	return newNode;
@@ -37,7 +37,7 @@ void free_ExpressionTreeNode_List(ExpressionTreeNode_List *list);
 void free_ExpressionTreeNode(ExpressionTreeNode* node){
 	//if (!node) ...
 	free_ExpressionTreeNode_List(&node->args);
-	release_ExpressionElement(node->element);
+	release_ExpressionToken(node->token);
 	free(node);
 	return;
 }

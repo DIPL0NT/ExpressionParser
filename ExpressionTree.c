@@ -1,4 +1,4 @@
-#include "ExpressionElement_dataStructures.c"
+#include "ExpressionToken_dataStructures.c"
 
 //Could create a tree
 	/*
@@ -44,7 +44,7 @@
 //the practical arity of a PREFIX operator is always 1 eg Sum(a,b) takes the only arg (a,b) ,an expression list
 
 
-int continue_creating_ExpressionTree_from_ExpressionString(ExpressionTreeNode *currentNode,ExpressionElement_Vector *vec,ExpressionTreeNode *root){
+int continue_creating_ExpressionTree_from_ExpressionString(ExpressionTreeNode *currentNode,ExpressionToken_Vector *vec,ExpressionTreeNode *root){
 
     //if I encounter '('
 	// if last token is operand, ERROR
@@ -96,7 +96,7 @@ int continue_creating_ExpressionTree_from_ExpressionString(ExpressionTreeNode *c
 }
 
 
-ExpressionTreeNode *create_ExpressionTree_from_ExpressionString(ExpressionElement_Vector *vec,ExpressionTreeNode *root){
+ExpressionTreeNode *create_ExpressionTree_from_ExpressionString(ExpressionToken_Vector *vec,ExpressionTreeNode *root){
 
 	//currentTreeNode
 	//currentTreeNode->root = root

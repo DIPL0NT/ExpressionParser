@@ -8,21 +8,22 @@ int main(){
 
 	print_avalaible_Operators();
 
-	char input[] = "sqrt(0.1/(4**.2)+5.7)";
+	char input[] = "sqrt( 0.1/(4**.2) +5.7)";
 	printf("Input: %s\n",input);
 	ExpressionString es = create_ExpressionString(input);
 	printf("ExpressionString: %s\n",es.str);
-	ExpressionElement el = {NULLTERM,NULL};
+	ExpressionToken tok = {NULLTERM,NULL};
 	printf("Parsed tokens: ");
-	while ( (el = get_next_ExpressionElement_from_ExpressionString(&es)).type!=NULLTERM ){
-		print_ExpressionElement(el);
-		printf(" ");
+	while ( (tok = get_next_ExpressionToken_from_ExpressionString(&es)).type!=NULLTERM ){
+		print_ExpressionToken(tok);
+		printf("_");
 	}
 	printf("\n");
 
 	float a = 2.0f;
 	float b = 2.0f;
-	printf("%f %s %f = %f \n",a,sumOp.symbol,b, ( (float(*)(float,float))sumOp.function )(a,b) );
+	float args[2]; args[0]=a; args[1]=b;
+	printf("%f %s %f = %f \n",a,sumOp.symbol,b, sumOp.function(args) );   //( (float(*)(float,float))sumOp.function )(a,b) );
 
 	return 0;
 }

@@ -46,4 +46,34 @@ void free_ExpressionTreeNode(ExpressionTreeNode* node){
 	return;
 }
 
+//SPEZZONE PRESO da get_next_ExpressionElement_from_ExpressionString PRIMA DI RISCRITTURA PER CONSIDERARE il WHITESPACE
+while (isOperandChar(es->str[i])) i++;
+if (i!=es->index){ //the character encountered was the beginning of a operand token
+	char tmp = es->str[i];
+	es->str[i] = '\0';
+	el.type = OPERAND;
+	el.data = parseOperandStringFormatToVoidPtr(es->str+es->index);
+	es->str[i] = tmp;
+	es->index = i;
+	return el;
+}
+
+while ( !isOperandChar(es->str[i]) &&es->str[i]!='(' &&es->str[i]!=')' &&es->str[i]!=',' &&es->str[i]!='\0') i++;
+	
+char tmp = es->str[i];
+es->str[i] = '\0';
+for (int j=0;j<NUMofOPERATORS;j++){
+	if (!strcmp(es->str+es->index,operators[j]->symbol)){
+		el.type = OPERATOR;
+		el.data = (void*) operators[j];
+		es->str[i] = tmp;
+		es->index = i;
+		return el;
+	}
+}
+
+
+
+
+
 
