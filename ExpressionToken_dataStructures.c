@@ -6,6 +6,7 @@ typedef struct ExpressionTreeNode ExpressionTreeNode;
 typedef struct ExpressionTreeNode_ListNode{
 	ExpressionTreeNode *treeNode;
 	struct ExpressionTreeNode_ListNode *next;
+	struct ExpressionTreeNode_ListNode *prev;
 } ExpressionTreeNode_ListNode;
 
 typedef struct ExpressionTreeNode_List{
@@ -17,7 +18,8 @@ typedef struct ExpressionTreeNode_List{
 typedef struct ExpressionTreeNode{
 	struct ExpressionTreeNode *root; //parent node
 	ExpressionToken token;
-	ExpressionTreeNode_List args;   //list of child nodes, ATTENTION: nodes get added to the head, so the head is always the right most argument. Have to pass args to functions in inverse order than the one in the list
+	ExpressionTreeNode_List args;   //list of child nodes
+	                                //, ATTENTION: nodes get added to the head, so the head is always the right most argument. Have to pass args to functions in inverse order than the one in the list
 } ExpressionTreeNode;
 
 ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionToken tok){
@@ -55,6 +57,7 @@ void addToTail_ExpressionTreeNode_List(ExpressionTreeNode_List *list,ExpressionT
 	//if (!newNode) ...
 	newNode->treeNode = treeNode;
 	newNode->next = NULL;
+	newNode->prev = list->tail;
 
 	if (!list->head){
 		list->head = newNode;
@@ -73,14 +76,16 @@ void addToHead_ExpressionTreeNode_List(ExpressionTreeNode_List *list,ExpressionT
 	//if (!newNode) ...
 	newNode->treeNode = treeNode;
 	newNode->next = list->head;
+	newNode->prev = NULL;
 
+	if (list->head){
+		list->head->prev = newNode;
+	}
 	list->head = newNode;
 	if (!list->tail){
 		list->tail = newNode;
 	}
-	else{
-		//nothing
-	}
+	
 	list->count++;
 	return;
 }
@@ -90,10 +95,22 @@ ExpressionTreeNode *removeTail_ExpressionTreeNode_List(ExpressionTreeNode_List *
 	//if (!list) return NULL; //should never happen anyway
 
 	ExpressionTreeNode_ListNode *tail = list->tail;
-	//if ()
+	if (!tail) return NULL; //empty list
+	if (list->count==1){ //list->head == list->tail
+		list->head = NULL;
+		list->tail = NULL;
+		list->count = 0;
+	}
+	else{
+		list->tail = tail->prev;
+		list->tail->next = NULL;
+		list->count--;
+	}
+	
+	ExpressionTreeNode *resNode = tail->treeNode;
+	free(tail);
 
-	//fuck this, too slow
-	return NULL;
+	return resNode;
 }
 
 ExpressionTreeNode *removeHead_ExpressionTreeNode_List(ExpressionTreeNode_List *list){
@@ -108,6 +125,7 @@ ExpressionTreeNode *removeHead_ExpressionTreeNode_List(ExpressionTreeNode_List *
 	}
 	else{
 		list->head = head->next;
+		list->head->prev = NULL;
 		list->count--;
 	}
 	
@@ -131,4 +149,7 @@ void free_ExpressionTreeNode_List(ExpressionTreeNode_List *list){
 	//list->count = 0;
 	return;
 }
+
+
+
 

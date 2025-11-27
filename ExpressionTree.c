@@ -75,7 +75,7 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 			return error;
 		}
 		else{ //recursive call
-			addToHead_ExpressionTreeNode_List(
+			addToTail_ExpressionTreeNode_List(
 				&currentTreeNode->args,
 				create_ExpressionTree_from_ExpressionToken_Vector(vec,currentTreeNode)
 			);
@@ -115,8 +115,8 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 				newTreeNode->args = currentTreeNode->args;
 				currentTreeNode->token = (ExpressionToken){EXPRESSIONTREENODE_LIST,NULL};
 				currentTreeNode->args = create_ExpressionTreeNode_List();
-				addToHead_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
-				addToHead_ExpressionTreeNode_List(
+				addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
+				addToTail_ExpressionTreeNode_List(
 					&currentTreeNode->args,
 					create_ExpressionTree_from_ExpressionToken_Vector(vec,currentTreeNode) //recursive call
 				);
@@ -132,10 +132,10 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 	//  if arity not maxed out (count<arity), add to the arg list
 	//  if arity maxed out, ERROR
 	else if (currentToken.type==OPERAND){
-		//check if two operands in a row?? , but it could be right if you have postfix operators
+		//check if two operands in a row?? , but it could be right eg. sum 2 2
 		if (!currentOperator || currentTreeNode->args.count < currentOperator->arity){ //should never happen that count >= arity
 			ExpressionTreeNode *newTreeNode = alloc_ExpressionTreeNode(currentTreeNode,currentToken);
-			addToHead_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
+			addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
 		}
 		else{
 			printf("Error while parsing token number %d (argument count >= than operator \"\033[36m%s\033[0m\"'s arity, \033[36m%d\033[0m)\n",vec->index-1,currentOperator->symbol,currentOperator->arity);
@@ -198,31 +198,31 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 				ExpressionTreeNode *newTreeNode = alloc_ExpressionTreeNode(currentTreeNode,currentToken);
 				newTreeNode->args = create_ExpressionTreeNode_List();
 				if (newOp->fix==INFIX){
-					addToHead_ExpressionTreeNode_List(&newTreeNode->args, removeHead_ExpressionTreeNode_List(&currentTreeNode->args) );
+					addToTail_ExpressionTreeNode_List(&newTreeNode->args, removeTail_ExpressionTreeNode_List(&currentTreeNode->args) );
 					if (newTreeNode->args.head->treeNode == NULL){
 						printf("ERROR while parsing token number %d (INFIX operator \"\033[36m%s\033[0m\" doesn't have an operand preceding it)\n",vec->index-1,newOp->symbol);
 						error = 2;
 						return error;
 					}
 					else{
-						addToHead_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
+						addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
 						error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,newTreeNode,currentTreeNode);	
 					}
 				}
 				else if (newOp->fix==PREFIX){
-					addToHead_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
+					addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
 					error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,newTreeNode,currentTreeNode);
 				}
 				else if (newOp->fix==POSTFIX){ //only case left actually
 					for (int j=0;j<newOp->arity;j++){
-						addToTail_ExpressionTreeNode_List(&newTreeNode->args, removeHead_ExpressionTreeNode_List(&currentTreeNode->args) );
+						addToHead_ExpressionTreeNode_List(&newTreeNode->args, removeTail_ExpressionTreeNode_List(&currentTreeNode->args) );
 						if (newTreeNode->args.tail->treeNode == NULL){
 							printf("ERROR while parsing token number %d (POSTFIX operator \"\033[36m%s\033[0m\" has arity \033[36m%d\033[0m but doesn't have enough operands preceding it)\n",vec->index-1,newOp->symbol,newOp->arity);
 							error = 2;
 							return error;
 						}
 					}
-					addToHead_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
+					addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
 					error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,newTreeNode,currentTreeNode);
 				}
 			}
@@ -247,7 +247,7 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 				newTreeNode->args = currentTreeNode->args;
 				currentTreeNode->token = currentToken;
 				currentTreeNode->args = create_ExpressionTreeNode_List();
-				addToHead_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
+				addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
 			}
 		}
 	}
@@ -325,10 +325,63 @@ ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector(Expression
 
 //maybe don't refactor actually
 
+typedef struct OperandVec{
+	OPERAND_VALUE_TYPE *values;
+	int count;
+} OperandVec;
+
+OperandVec *alloc_OperandVec(int count){
+	OperandVec *newVec = (OperandVec*)malloc(sizeof(OperandVec));
+	//if (!newVec) ...
+	newVec->values = (OPERAND_VALUE_TYPE*)malloc(count*sizeof(OPERAND_VALUE_TYPE));
+	//if (!newVec->values) ...
+	newVec->count = count;
+	return newVec;
+}
+
+void free_OperandVec(OperandVec *vec){
+	//if (!vec) ...
+	/*for (int i=0;i<vec->count;i++){
+		releaseOperandValue(vec->values[i]); //must not free actual operand values since they might still be needed 
+	}*/
+	free(vec->values);
+	free(vec);
+	return;
+}
+
+OperandVec *combine_OperandVec(OperandVec *vec1,OperandVec *vec2){
+	//if (!vec1 || !vec2) ...
+	OperandVec *newVec = alloc_OperandVec(vec1->count+vec2->count);
+	int i;
+	for (i=0;i<vec1->count;i++){
+		newVec->values[i] = vec1->values[i];
+	}
+	for (int j=0;j<vec2->count;j++){
+		newVec->values[i++] = vec2->values[j];
+	}
+	free_OperandVec(vec1);
+	free_OperandVec(vec2);
+
+	return newVec;
+}
 
 
-OPERAND_VALUE_TYPE evaluate_ExpressionTree(ExpressionTreeNode *tree){
+OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
+	OperandVec *result = NULL;
+	if (tree->token.type==OPERAND){
+		result = alloc_OperandVec(1);
+		result->values[0] = ((Operand*) tree->token.data)->value ;
+		return result;
+	}
 
+	result = alloc_OperandVec(tree->args.count);
+	int i = 0;
+	ExpressionTreeNode_ListNode *cur = tree->args.head;
+	for (int j=0;j<tree->args.count;j++){
+		
+
+		cur = cur->next;
+	}
 }
 
 
