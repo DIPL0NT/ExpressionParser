@@ -331,6 +331,12 @@ ExpressionToken_Vector *create_ExpressionToken_Vector_from_ExpressionString(Expr
 		addTo_ExpressionToken_Vector(newVec,get_next_ExpressionToken_from_ExpressionString(es));
 	}
 
+	if (newVec->array[newVec->count].type!=NULLTERM){
+		printf("ERROR while creating token vector: the last token is not a NULLTERM\n");
+		free_ExpressionToken_Vector(newVec);
+		return NULL;
+	}
+
 	return newVec;
 }
 
@@ -343,4 +349,6 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionToken_Vector(ExpressionT
 
 	return vec->array[vec->index++];
 }
+
+
 

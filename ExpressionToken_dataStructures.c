@@ -17,7 +17,7 @@ typedef struct ExpressionTreeNode_List{
 typedef struct ExpressionTreeNode{
 	struct ExpressionTreeNode *root; //parent node
 	ExpressionToken token;
-	ExpressionTreeNode_List args;   //list of child nodes
+	ExpressionTreeNode_List args;   //list of child nodes, ATTENTION: nodes get added to the head, so the head is always the right most argument. Have to pass args to functions in inverse order than the one in the list
 } ExpressionTreeNode;
 
 ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionToken tok){
