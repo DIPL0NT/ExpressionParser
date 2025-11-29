@@ -42,11 +42,6 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 // so that args can be added before encountering the operator in case of INFIX or POSTFIX operators,
 // when encountering the operator compare operator arity and current args list size
 
-//IMPORTANT
-// args added to the head of the list, so when evaluating must start from tail
-
-//the practical arity of a PREFIX operator is always 1 eg Sum(a,b) takes the only arg (a,b) ,an expression list
-
 int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken_Vector *vec,ExpressionTreeNode *currentTreeNode,ExpressionTreeNode *root){
 
 	//Local state variables
@@ -154,8 +149,7 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
     //     add new operator to arg list, recursive call on??? (problem: the new operator is the root of a subtree, but since it's initialized I can't call recursively, maybe make an ad-hoc func?)
 	//  if it's equal or lower precedence compared to current operator:
 	//   the current operator must have its arity maxed out (arg list count==arity)
-	/*
-		 newTreeNode root,element,args
+	/*   newTreeNode root,element,args
 		 newTreeNode->root = currentTreeNode
 		 newTreeNode->element = currentTreeNode->element
 		 newTreeNode->args = currentTreeNode->args
@@ -280,6 +274,11 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 		}
 	}
 
+	else if (currentToken.type==NULLTERM){
+		error = 0;
+		return error;
+	}
+
 	else{
 		printf("ERROR while parsing token number %d, unrecognized token\n",vec->index-1);
 		error = -1;
@@ -297,6 +296,7 @@ ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector(Expression
 	ExpressionTreeNode *currentTreeNode = alloc_ExpressionTreeNode(root,(ExpressionToken){EXPRESSIONTREENODE_LIST,NULL});
 	currentTreeNode->args = create_ExpressionTreeNode_List();
 
+	/* BREAKS RECURSIVE CALLS
 	//leading '('
 	if (OPENPAR != get_next_ExpressionToken_from_ExpressionToken_Vector(vec).type){
 		printf("ERROR while parsing token number %d\n",vec->index-1);
@@ -304,6 +304,7 @@ ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector(Expression
 		free_ExpressionTreeNode(currentTreeNode);
 		return NULL;
 	}
+	*/
 
 	//START PARSING LOOP inside the function:
 	int error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,currentTreeNode,root);
@@ -324,6 +325,11 @@ ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector(Expression
 //also add support for writing arg lists both with parentheses and commas eg. sum(2,2) and without eg. sum 2 2
 
 //maybe don't refactor actually
+
+
+
+
+
 
 typedef struct OperandVec{
 	OPERAND_VALUE_TYPE *values;
@@ -419,6 +425,5 @@ OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
 
 	return NULL; //should never get here anyway
 }
-
 
 

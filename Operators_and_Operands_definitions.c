@@ -144,7 +144,7 @@ void print_Operand(Operand *o){
 	return;
 }
 
-/*
+/* IMPORTANT
 * Use at the beginning of main() to check that:
 * 	1) Operator symbols don't include one of the reserved chars '\0', '(', ')', ','
 * 	2) Operand string format doesn't include one the reserved chars '\0', '(', ')', ','
@@ -176,6 +176,7 @@ int checkCompatibilityOperatorAndOperandChars(){
 	printf("CORRECT Operator symbols and Operand string format definitions\n");
 	return 1;
 }
+
 
 
 

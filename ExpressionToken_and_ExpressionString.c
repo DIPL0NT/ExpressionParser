@@ -289,6 +289,7 @@ ExpressionToken_Vector *create_ExpressionToken_Vector(int initialCapacity){
 	newVec->array = (ExpressionToken*)malloc(initialCapacity*sizeof(ExpressionToken));
 	//if (!newVec->array) ...
 	newVec->capacity = initialCapacity;
+	newVec->count = 0;
 	newVec->index = 0;
 
 	return newVec;
@@ -315,6 +316,7 @@ void addTo_ExpressionToken_Vector(ExpressionToken_Vector *vec,ExpressionToken to
 			newArray[i] = vec->array[i];
 		}
 		free(vec->array);
+		vec->array = newArray;
 		vec->capacity *= 2; //magic number
 	}
 	
@@ -324,26 +326,31 @@ void addTo_ExpressionToken_Vector(ExpressionToken_Vector *vec,ExpressionToken to
 }
 
 ExpressionToken_Vector *create_ExpressionToken_Vector_from_ExpressionString(ExpressionString *es){
-	ExpressionToken_Vector *newVec = create_ExpressionToken_Vector(es->len/2); //magic number
+	ExpressionToken_Vector *newVec = create_ExpressionToken_Vector(10); //magic number
 	//if (!newVec) ...
 
-	while (newVec->array[newVec->count-1].type!=NULLTERM){
+	do {
 		addTo_ExpressionToken_Vector(newVec,get_next_ExpressionToken_from_ExpressionString(es));
-	}
-
+	} while (newVec->array[newVec->count-1].type!=NULLTERM);
+	/*
 	if (newVec->array[newVec->count].type!=NULLTERM){
 		printf("ERROR while creating token vector: the last token is not a NULLTERM\n");
 		free_ExpressionToken_Vector(newVec);
 		return NULL;
 	}
+	*/
 
 	return newVec;
 }
 
 ExpressionToken get_next_ExpressionToken_from_ExpressionToken_Vector(ExpressionToken_Vector *vec){
-	if (vec->count==0) return (ExpressionToken){NULLTERM,NULL};
-	if (vec->index>=vec->count){
+	if (vec->count==0){
+		//printf("Ciao\n");
+		return (ExpressionToken){NULLTERM,NULL};
+	}
+	if (vec->index >= vec->count){
 		//...
+		//printf("MIAO\n");
 		return (ExpressionToken){NULLTERM,NULL};
 	}
 
