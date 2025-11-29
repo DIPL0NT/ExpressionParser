@@ -1,6 +1,8 @@
-#include "ExpressionToken_dataStructures.c"
+#include "ExpressionTree_V1.c"
 
 ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken_Vector *vec,ExpressionTreeNode *root);
+
+ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector_Recursion(ExpressionToken_Vector *vec,ExpressionTreeNode *root);
 
 int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken_Vector *vec,ExpressionTreeNode *currentTreeNode,ExpressionTreeNode *root);
 
@@ -42,13 +44,17 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 // so that args can be added before encountering the operator in case of INFIX or POSTFIX operators,
 // when encountering the operator compare operator arity and current args list size
 
+//TODO
+//FIX implementation of operator precedence
+//When encountering an operator with lower precedence it must climb back the tree until it finds a sub-root with equal or lower precedence
+
 int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken_Vector *vec,ExpressionTreeNode *currentTreeNode,ExpressionTreeNode *root){
 
 	//Local state variables
 	const Operator *currentOperator = NULL;
 	int error = 0;
 
-	ExpressionToken currentToken = (ExpressionToken){NULLTERM,NULL};
+	ExpressionToken currentToken = (ExpressionToken){EMPTY,NULL};
 
 	while (!error){
 
@@ -106,15 +112,21 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 				return error;
 			}
 			else{
+				/* OLD
 				ExpressionTreeNode *newTreeNode = alloc_ExpressionTreeNode(currentTreeNode,currentTreeNode->token);
 				newTreeNode->args = currentTreeNode->args;
 				currentTreeNode->token = (ExpressionToken){EXPRESSIONTREENODE_LIST,NULL};
+				currentOperator = NULL;
 				currentTreeNode->args = create_ExpressionTreeNode_List();
 				addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
 				addToTail_ExpressionTreeNode_List(
 					&currentTreeNode->args,
-					create_ExpressionTree_from_ExpressionToken_Vector(vec,currentTreeNode) //recursive call
+					create_ExpressionTree_from_ExpressionToken_Vector_Recursion(vec,currentTreeNode) //recursive call
 				);
+				*/
+				do{
+					currentTreeNode = currentTreeNode->root ;
+				} while (currentTreeNode->token.type!=EXPRESSIONTREENODE_LIST); //since the root of the entire tree is always a list, currentTreeNode should never be NULL
 				
 			}
 		}
@@ -127,8 +139,13 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 	//  if arity not maxed out (count<arity), add to the arg list
 	//  if arity maxed out, ERROR
 	else if (currentToken.type==OPERAND){
+		/* THIS SHOULD NEVER HAPPEN CUZ AN EXPRESSIONTREENODE_LIST NODE ALWAYS CREATES AN EMPTY NODE 
+		if (currentTreeNode->token.type==EXPRESSIONTREENODE_LIST){
+			
+		}
+		*/
 		//check if two operands in a row?? , but it could be right eg. sum 2 2
-		if (!currentOperator || currentTreeNode->args.count < currentOperator->arity){ //should never happen that count >= arity
+		if (/*!currentOperator*/currentTreeNode->token.type==EMPTY || currentTreeNode->args.count < currentOperator->arity){ //should never happen that count >= arity
 			ExpressionTreeNode *newTreeNode = alloc_ExpressionTreeNode(currentTreeNode,currentToken);
 			addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
 		}
@@ -162,9 +179,9 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 	
 	*/
 	else if (currentToken.type==OPERATOR){
-		if (!currentOperator){
+		if (!currentOperator && currentTreeNode->token.type==EMPTY){
 			currentTreeNode->token = currentToken;
-			currentOperator = (const Operator*)currentToken.data ;
+			currentOperator = (const Operator*)currentTreeNode->token.data ;
 			if (currentTreeNode->args.count > currentOperator->arity){
 				printf("Error while parsing token number %d (argument count >= than operator \"\033[36m%s\033[0m\"'s arity, \033[36m%d\033[0m)\n",vec->index-1,currentOperator->symbol,currentOperator->arity);
 				error = 2;
@@ -186,6 +203,10 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 				return error;
 			}
 		}
+		else if (!currentOperator && currentTreeNode->token.type==EXPRESSIONTREENODE_LIST){
+			ExpressionTreeNode *newTreeNode = alloc_ExpressionTreeNode(currentTreeNode,currentToken);
+
+		}
 		else{
 			const Operator *newOp = (const Operator*)currentToken.data;
 			if ( newOp->precedence > currentOperator->precedence ){
@@ -200,12 +221,12 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 					}
 					else{
 						addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
-						error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,newTreeNode,currentTreeNode);	
+						error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,newTreeNode,currentTreeNode);	 //recursive call
 					}
 				}
 				else if (newOp->fix==PREFIX){
 					addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
-					error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,newTreeNode,currentTreeNode);
+					error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,newTreeNode,currentTreeNode); //recursive call
 				}
 				else if (newOp->fix==POSTFIX){ //only case left actually
 					for (int j=0;j<newOp->arity;j++){
@@ -217,10 +238,11 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 						}
 					}
 					addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
-					error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,newTreeNode,currentTreeNode);
+					error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,newTreeNode,currentTreeNode); //recursive call
 				}
 			}
 			else{ // newOp has lower or equal precedence to currentOp
+				printf("CIAO\n");
 				if (newOp->fix==PREFIX){
 					printf("ERROR while parsing token number %d (previous operator \"\033[36m%s\033[0m\" has higher or equal precedence than PREFIX operator \"\033[36m%s\033[0m\")\n",vec->index-1,currentOperator->symbol,newOp->symbol);
 					error = 7;
@@ -236,12 +258,32 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 					error = 2;
 					return error;
 				}
-				//
+				/* OLD VERSION THAT DOESN'T DEAL WELL WITH NESTED OPERATORS WITH DIFFERENT PRECEDENCES (doesnt climb tree back)
 				ExpressionTreeNode *newTreeNode = alloc_ExpressionTreeNode(currentTreeNode,currentTreeNode->token);
 				newTreeNode->args = currentTreeNode->args;
 				currentTreeNode->token = currentToken;
 				currentTreeNode->args = create_ExpressionTreeNode_List();
 				addToTail_ExpressionTreeNode_List(&currentTreeNode->args,newTreeNode);
+				*/
+
+				//climb the expression tree back until a sub-root with <= precedence than newOp is found
+				//newOp must take the place of sub-root's child node with the operator that still has > precedence than newOp
+				ExpressionTreeNode *lowestRootWithHigherPrecedence = currentTreeNode;
+				while ( lowestRootWithHigherPrecedence->root && lowestRootWithHigherPrecedence->root->token.type!=EXPRESSIONTREENODE_LIST 
+					&& ((Operator*)lowestRootWithHigherPrecedence->root->token.data)->precedence > newOp->precedence 
+				){
+					printf("MIAO\n");
+					lowestRootWithHigherPrecedence = lowestRootWithHigherPrecedence->root;
+				}
+
+				//
+				ExpressionTreeNode *newTreeNode = alloc_ExpressionTreeNode(lowestRootWithHigherPrecedence,lowestRootWithHigherPrecedence->token);
+				newTreeNode->args = lowestRootWithHigherPrecedence->args;
+				lowestRootWithHigherPrecedence->token = currentToken;
+				lowestRootWithHigherPrecedence->args = create_ExpressionTreeNode_List();
+				addToTail_ExpressionTreeNode_List(&lowestRootWithHigherPrecedence->args,newTreeNode);
+				currentTreeNode = lowestRootWithHigherPrecedence;
+				currentOperator = (const Operator*)currentTreeNode->token.data ;
 			}
 		}
 	}
@@ -290,6 +332,25 @@ int continue_creating_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken
 	return error;
 }
 
+ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector_Recursion(ExpressionToken_Vector *vec,ExpressionTreeNode *root){
+
+	ExpressionTreeNode *currentTreeNode = alloc_ExpressionTreeNode(root,(ExpressionToken){EMPTY,NULL});
+	currentTreeNode->args = create_ExpressionTreeNode_List();
+
+	//START PARSING LOOP inside the function:
+	int error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,currentTreeNode,root);
+
+	if (error){
+		//print the error in continue_creating_ExpressionTree_from_ExpressionString
+		//printf("ERROR while parsing token number %d\n",vec->index-1);
+		free_ExpressionTreeNode_List(&currentTreeNode->args);
+		free_ExpressionTreeNode(currentTreeNode);
+		return NULL;
+	}
+  
+
+	return currentTreeNode;
+}
 
 ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken_Vector *vec,ExpressionTreeNode *root){
 
@@ -307,8 +368,10 @@ ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector(Expression
 	*/
 
 	//START PARSING LOOP inside the function:
-	int error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,currentTreeNode,root);
+	//int error = continue_creating_ExpressionTree_from_ExpressionToken_Vector(vec,currentTreeNode,root);
+	addToTail_ExpressionTreeNode_List(&currentTreeNode->args,create_ExpressionTree_from_ExpressionToken_Vector_Recursion(vec,currentTreeNode));
 
+	/*
 	if (error){
 		//print the error in continue_creating_ExpressionTree_from_ExpressionString
 		//printf("ERROR while parsing token number %d\n",vec->index-1);
@@ -316,6 +379,7 @@ ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector(Expression
 		free_ExpressionTreeNode(currentTreeNode);
 		return NULL;
 	}
+	*/
   
 
 	return currentTreeNode;

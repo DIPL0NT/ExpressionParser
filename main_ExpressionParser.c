@@ -8,7 +8,7 @@ int main(){
 
 	print_avalaible_Operators();
 
-	char input[] = "sqrt( 0.1/(4**.2) +5.7)";
+	char input[] = "sqrt( 0.1/4**.2 +5.7)";
 	printf("Input: %s\n",input);
 	ExpressionString es = create_ExpressionString(input);
 	printf("ExpressionString: %s\n",es.str);

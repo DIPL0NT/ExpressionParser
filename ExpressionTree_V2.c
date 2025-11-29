@@ -1,6 +1,6 @@
-#include "ExpressionToken_and_ExpressionString.c"
+#include "ExpressionToken.c"
 
-
+typedef enum{LIST,EMPTY,OPERAND_NODE,OPERATOR_NODE} ExpressionTreeNodeType;
 typedef struct ExpressionTreeNode ExpressionTreeNode;
 
 typedef struct ExpressionTreeNode_ListNode{
@@ -17,25 +17,25 @@ typedef struct ExpressionTreeNode_List{
 
 typedef struct ExpressionTreeNode{
 	struct ExpressionTreeNode *root; //parent node
-	ExpressionToken token;
-	ExpressionTreeNode_List args;   //list of child nodes
-	                                //, ATTENTION: nodes get added to the head, so the head is always the right most argument. Have to pass args to functions in inverse order than the one in the list
+    ExpressionTreeNodeType type;
+	ExpressionTreeNode_List args;    //list of child nodes
+    ExpressionToken token;
 } ExpressionTreeNode;
 
-ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionToken tok){
+//ATTENTION: it doesn't alloc the arg list
+ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionTokenType type,ExpressionToken tok){
 	ExpressionTreeNode *newNode = (ExpressionTreeNode*) malloc(sizeof(ExpressionTreeNode));
 	//if (!newNode) ...
 	newNode->root = root;
+    newNode->type = type;
 	newNode->token = tok;
-	newNode->args.head = NULL; //{NULL,0};
-	newNode->args.count = 0;
+	newNode->args = create_ExpressionTreeNode_List();
 	return newNode;
 }
 
 //implemented further down
 //damned circular dependencies
 void free_ExpressionTreeNode_List(ExpressionTreeNode_List *list);
-
 void free_ExpressionTreeNode(ExpressionTreeNode* node){
 	//if (!node) ...
 	free_ExpressionTreeNode_List(&node->args);
@@ -90,7 +90,6 @@ void addToHead_ExpressionTreeNode_List(ExpressionTreeNode_List *list,ExpressionT
 	return;
 }
 
-//TODO
 ExpressionTreeNode *removeTail_ExpressionTreeNode_List(ExpressionTreeNode_List *list){
 	//if (!list) return NULL; //should never happen anyway
 
@@ -149,7 +148,6 @@ void free_ExpressionTreeNode_List(ExpressionTreeNode_List *list){
 	//list->count = 0;
 	return;
 }
-
 
 
 

@@ -1,8 +1,12 @@
 #include "Operators_and_Operands_definitions.c"
 
-typedef enum{NULLTERM,OPENPAR,CLOSEPAR,COMMA,OPERATOR,OPERAND,EXPRESSIONTREENODE_LIST} ExpressionTokenType;
+/* OLD, USED BY OLD OIMPLEMENTATION OF ExpressionTree
+typedef enum{NULLTERM,EMPTY,OPENPAR,CLOSEPAR,COMMA,OPERATOR,OPERAND,EXPRESSIONTREENODE_LIST} ExpressionTokenType;
 //EXPRESSIONTREENODE_LIST is to be used when creating the expression tree
 //, its data must be NULL since the actual list is referenced byt the TreeNode
+*/
+
+typedef enum{NULLTERM,OPENPAR,CLOSEPAR,COMMA,OPERATOR,OPERAND} ExpressionTokenType;
 
 typedef struct ExpressionToken{
 	ExpressionTokenType type;
@@ -50,7 +54,7 @@ typedef struct ExpressionString{
 	char *str;
 } ExpressionString;
 
-//checks parenthesization and strips whitespace
+//checks parenthesization and commas and strips whitespace
 //wraps the entire expression in parentheses for good measure
 ExpressionString create_ExpressionString(char* str){
 	ExpressionString es = {2+strlen(str),0,NULL};
@@ -68,7 +72,7 @@ ExpressionString create_ExpressionString(char* str){
 		}
 		if (str[j]==')'){
 			if (parenthesis_count<1){
-				printf("Parenthesization error in expression string: %s (surplus closed parenthesis in position %d)\n",str,j);
+				printf("ERROR while parsing expression string: %s (surplus closed parenthesis in position %d)\n",str,j);
 				free(es.str);
 				es.str=NULL;
 				return es;
@@ -78,16 +82,26 @@ ExpressionString create_ExpressionString(char* str){
 		if (str[j]=='('){
 			parenthesis_count++;
 		}
-		/*
 		if (str[j]==','){
-
+			if ( str[i-1]=='(' || str[i-1]==' '&&str[i-2]==',' ){
+				printf("ERROR while parsing expression string: %s (opening parenthesis followed by comma in position %d)\n",str,j);
+				free(es.str);
+				es.str=NULL;
+				return es;
+			}
+			if ( str[i-1]==',' ){
+				printf("ERROR while parsing expression string: %s (comma followed by comma in position %d)\n",str,j);
+				free(es.str);
+				es.str=NULL;
+				return es;
+			}
 		}
-		*/
+
 		es.str[i++] = str[j++];
 	}
 
 	if (parenthesis_count>0){
-		printf("Parenthesization error in expression string: %s (missing closed parenthesis in position %d, the end of the string)\n",str,i-1);
+		printf("ERROR while parsing expression string: %s (missing closed parenthesis)\n",str);
 		free(es.str);
 		es.str=NULL;
 		return es;
@@ -356,6 +370,5 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionToken_Vector(ExpressionT
 
 	return vec->array[vec->index++];
 }
-
 
 
