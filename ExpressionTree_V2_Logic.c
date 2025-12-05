@@ -182,6 +182,11 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
                     }
                     else{ // newOp->precedence <= currentOp->precedence
                         while (currentNode->root->type!=LIST_NODE && newOp->precedence <= currentOp->precedence){
+                            if (currentNode->args.count != currentOp->arity){
+                                printf("ERROR while parsing (insufficient arg count for operator \"\033[36m%s\033[0m\")\n",currentOp->symbol);
+                                error = 2;
+                                return error;
+                            }
                             currentNode = currentNode->root;
                             currentOp = (const Operator*)currentNode->token.data ;
                         }
