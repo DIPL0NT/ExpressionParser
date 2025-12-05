@@ -74,6 +74,123 @@ for (int j=0;j<NUMofOPERATORS;j++){
 
 
 
+//SPEZZONE DA fill_INCOMPLETE_ExpressionTreeNode
+case (OPENPAR):{
+            if (currentNode->type==OPERATOR_NODE){ //check compatibility with current op
+                if (currentOp->fix==PREFIX){
+                    if (currentNode->args.count /*>*/= currentOp->arity){
+                        printf("ERROR while parsing token number %d (argument count > \033[36m%d\033[0m = operator \"\033[36m%s\033[0m\"'s arity\n",vec->index-1,currentOp->arity,currentOp->symbol);
+                        error = 2;
+                        return error;
+                    }
+                }
+                if (currentOp->fix==INFIX){
+                    if (currentNode->args.count != 1){
+                        printf("ERROR while parsing token number %d (INFIX operator \"\033[36m%s\033[0m\" must have exactely one operand before it)\n",vec->index-1,currentOp->symbol);
+                        error = 2;
+                        return error;
+                    }
+                }
+                if (currentOp->fix==POSTFIX){
+                    /* CHECKS on POSTFIX OPERATORS ARE DONE AS SOON AS the OPERATOR is ENCOUNTERED
+                    if (currentNode->args.count != currentOp->arity){
+                        printf("ERROR while parsing token number %d (argument count < \033[36m%d\033[0m) = operator \"\033[36m%s\033[0m\"'s arity\n",vec->index-1,currentOp->arity,currentOp->symbol);
+                        error = 2;
+                        return error;
+                    }
+                    */
+                }
+            }
 
+
+
+//SPEZZONE DA fill_INCOMPLETE_ExpressionTreeNode
+case(OPERATOR):{
+			if (currentNode->type==INCOMPLETE){
+                currentOp = (const Operator*)currentToken.data;
+                if (currentOp->fix==INFIX){
+                    if (currentNode->args.count!=1){
+                        printf("ERROR while parsing token number %d (INFIX operator \"\033[36m%s\033[0m\" must have exactely one operand before it)\n",vec->index-1,currentOp->symbol);
+                        error = 2;
+                        return error;
+                    }
+                }
+                if (currentOp->fix==POSTFIX){
+                    if (currentNode->args.count < currentOp->arity){
+                        printf("ERROR while parsing token number %d (argument count < \033[36m%d\033[0m) = operator \"\033[36m%s\033[0m\"'s arity\n",vec->index-1,currentOp->arity,currentOp->symbol);
+                        error = 2;
+                        return error;
+                    }
+                }
+
+                ExpressionTreeNode *newNode = alloc_ExpressionTreeNode(currentNode,OPERATOR_NODE,currentToken);
+                if (currentOp->fix==INFIX){
+                    addToTail_ExpressionTreeNode_List(&newNode->args,removeTail_ExpressionTreeNode_List(&currentNode->args));
+                }
+                if (currentOp->fix==POSTFIX){
+                    for (int i=0;i<currentOp->arity;i++){
+                        addToHead_ExpressionTreeNode_List(&newNode->args,removeTail_ExpressionTreeNode_List(&currentNode->args));
+                    }
+                }
+
+                addToTail_ExpressionTreeNode_List(&currentNode->args,newNode);
+                currentNode = newNode;
+            }
+            else if (currentNode->type==OPERATOR_NODE){
+                const Operator* newOp = (const Operator*)currentToken.data;
+                if ( newOp->precedence > currentOp->precedence ){
+                    if (newOp->fix==INFIX){
+                        if (currentNode->args.count!=1){
+                            printf("ERROR while parsing token number %d (INFIX operator \"\033[36m%s\033[0m\" must have exactely one operand before it)\n",vec->index-1,newOp->symbol);
+                            error = 2;
+                            return error;
+                        }
+                    }
+                    if (newOp->fix==POSTFIX){ //precedence doesn't really make sense in this case anyway
+                        while (currentNode->type!=LIST_NODE){
+                            currentNode = currentNode->root;
+                        }
+                        if (currentNode->args.count < newOp->arity){
+                            printf("ERROR while parsing token number %d (argument count < \033[36m%d\033[0m) = operator \"\033[36m%s\033[0m\"'s arity\n",vec->index-1,newOp->arity,newOp->symbol);
+                            error = 2;
+                            return error;
+                        }
+                    }
+
+                    ExpressionTreeNode *newNode = alloc_ExpressionTreeNode(currentNode,OPERATOR_NODE,currentToken);
+                    if (newOp->fix==INFIX){
+                        addToTail_ExpressionTreeNode_List(&newNode->args,removeTail_ExpressionTreeNode_List(&currentNode->args));
+                    }
+                    if (newOp->fix==POSTFIX){
+                        for (int i=0;i<newOp->arity;i++){
+                            addToHead_ExpressionTreeNode_List(&newNode->args,removeTail_ExpressionTreeNode_List(&currentNode->args));
+                        }
+                    }
+
+                    addToTail_ExpressionTreeNode_List(&currentNode->args,newNode);
+                    if (newOp->fix!=POSTFIX){
+                        currentNode = newNode;
+                        currentOp = newOp;
+                    }
+                }
+                else{ // newOp->precedence <= currentOp->precedence
+                    while (currentNode->root->type!=LIST_NODE && newOp->precedence<=currentOp->precedence){
+                        if (currentNode->args.count!=currentOp->arity){
+                            printf("ERROR while parsing (argument count < \033[36m%d\033[0m) = operator \"\033[36m%s\033[0m\"'s arity\n",newOp->arity,newOp->symbol);
+                            error = 2;
+                            return error;
+                        }
+
+                        currentNode = currentNode->root;
+                        currentOp = (Operator*)currentNode->token.data;
+                    }
+                    //if newOp postfix
+                    //else
+                    
+                }
+            }
+            //there should be no other else
+            break;
+}
 
 

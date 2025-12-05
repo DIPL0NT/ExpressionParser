@@ -1,6 +1,6 @@
 #include "ExpressionToken.c"
 
-typedef enum{LIST,EMPTY,OPERAND_NODE,OPERATOR_NODE} ExpressionTreeNodeType;
+typedef enum{LIST_NODE,INCOMPLETE,OPERAND_NODE,OPERATOR_NODE} ExpressionTreeNodeType;
 typedef struct ExpressionTreeNode ExpressionTreeNode;
 
 typedef struct ExpressionTreeNode_ListNode{
@@ -22,7 +22,6 @@ typedef struct ExpressionTreeNode{
     ExpressionToken token;
 } ExpressionTreeNode;
 
-//ATTENTION: it doesn't alloc the arg list
 ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionTokenType type,ExpressionToken tok){
 	ExpressionTreeNode *newNode = (ExpressionTreeNode*) malloc(sizeof(ExpressionTreeNode));
 	//if (!newNode) ...
@@ -148,6 +147,28 @@ void free_ExpressionTreeNode_List(ExpressionTreeNode_List *list){
 	//list->count = 0;
 	return;
 }
+
+//doesn't modify list2
+void concat_ExpressionTreeNode_List(ExpressionTreeNode_List *list1,ExpressionTreeNode_List *list2){
+	if (!list1 || !list2){
+		//printf ...
+		return;
+	}
+
+	if (list1->head==NULL){
+		list1->head = list2->head;
+		list1->tail = list2->tail;
+		list1->count = list2->count;
+		return;
+	}
+
+	list1->tail->next = list2->head;
+	list1->tail = list2->tail ? list2->tail : list1->tail ;
+	list1->count += list2->count;
+
+	return;
+}
+
 
 
 
