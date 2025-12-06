@@ -22,7 +22,15 @@ typedef struct ExpressionTreeNode{
     ExpressionToken token;
 } ExpressionTreeNode;
 
-ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionTokenType type,ExpressionToken tok){
+ExpressionTreeNode_List create_ExpressionTreeNode_List(){
+	ExpressionTreeNode_List list;
+	list.head = NULL;
+	list.tail = NULL;
+	list.count = 0;
+	return list;
+}
+
+ExpressionTreeNode *alloc_ExpressionTreeNode(ExpressionTreeNode *root,ExpressionTreeNodeType type,ExpressionToken tok){
 	ExpressionTreeNode *newNode = (ExpressionTreeNode*) malloc(sizeof(ExpressionTreeNode));
 	//if (!newNode) ...
 	newNode->root = root;
@@ -41,14 +49,6 @@ void free_ExpressionTreeNode(ExpressionTreeNode* node){
 	release_ExpressionToken(node->token);
 	free(node);
 	return;
-}
-
-ExpressionTreeNode_List create_ExpressionTreeNode_List(){
-	ExpressionTreeNode_List list;
-	list.head = NULL;
-	list.tail = NULL;
-	list.count = 0;
-	return list;
 }
 
 void addToTail_ExpressionTreeNode_List(ExpressionTreeNode_List *list,ExpressionTreeNode *treeNode){

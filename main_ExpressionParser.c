@@ -6,22 +6,27 @@ int main(){
 		return 1;
 	}
 
-	print_avalaible_Operators();
+	//print_avalaible_Operators();
 
-	char input[] = "sqrt( 0.1/4**.2 +5.7)";
+	//char input[] = "11";
+	//char input[] = "sqrt( 0.1/4**.2 +5.7)";
+	char input[] = "sqrt (0.1) /4**.2 +5.7";
+	//char input[] = "sqrt( 0.1**4/.2 +5.7)";
 	printf("Input: %s\n",input);
+	
 	ExpressionString es = create_ExpressionString(input);
+	/*
 	printf("ExpressionString: %s\n",es.str);
+	
 	ExpressionToken tok = {NULLTERM,NULL};
 	printf("Parsed tokens: ");
-	
 	while ( (tok = get_next_ExpressionToken_from_ExpressionString(&es)).type!=NULLTERM ){
 		print_ExpressionToken(tok);
 		printf("_");
 	}
 	es.index = 0;
 	printf("\n");
-	
+	*/
 
 	ExpressionToken_Vector *tokenVec = create_ExpressionToken_Vector_from_ExpressionString(&es);
 	printf("Token Vector: ");
@@ -32,10 +37,12 @@ int main(){
 	}
 	printf("\n");
 	tokenVec->index = 0;
-	
 
+	ExpressionTreeNode *tree = create_ExpressionTree_from_ExpressionToken_Vector(tokenVec);
 
-	ExpressionTreeNode *tree = create_ExpressionTree_from_ExpressionToken_Vector(tokenVec,NULL);
+	print_ExpressionTree(tree);
+	printf("\n");
+
 	OperandVec *resVec = evaluate_ExpressionTree(tree);
 	float res = resVec->values[0] ;
 

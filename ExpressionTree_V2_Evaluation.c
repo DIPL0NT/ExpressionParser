@@ -57,6 +57,7 @@ OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
 			result->values[i++] = ((Operand*)cur->treeNode->token.data)->value ;
 		}
 		else if (cur->treeNode->type==OPERATOR_NODE){
+            //maybe rewrite with combineVecs
 			result->values[i++] = evaluate_ExpressionTree(cur->treeNode)->values[0] ; //remember that functions must always return exactely 1 value
 		}
 		else if (cur->treeNode->type==LIST_NODE){ //should be the only other case
@@ -65,6 +66,7 @@ OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
 			result->count = result->count + cur->treeNode->args.count ;
 			ExpressionTreeNode_ListNode *cur2 = cur->treeNode->args.head ;
 			for (int k=0;k<cur->treeNode->args.count;k++){
+                //maybe rewrite with combineVecs
 				result->values[i++] = evaluate_ExpressionTree(cur2->treeNode)->values[0] ; //remember that functions must always return exactely 1 value
 				cur2 = cur2->next;
 			}
@@ -80,7 +82,7 @@ OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
 	if (tree->type==OPERATOR_NODE){ //should be the only remaning case
 		const Operator *op = (const Operator*)tree->token.data ;
 		if (result->count != op->arity ){
-			printf("ERROR while evaluating expression tree beacuse of arity mismatch for an operator \"\033[36m%s033[0m\"\n",op->symbol);
+			printf("\033[31mERROR\033[0m while evaluating expression tree beacuse of arity mismatch for an operator \"\033[36m%s033[0m\"\n",op->symbol);
 			free_OperandVec(result);
 			return NULL;
 		}
@@ -94,6 +96,94 @@ OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
 
 	return NULL; //should never get here anyway
 }
+
+
+int terminal_colors[] = {31,32,33,35,36};
+int terminal_colors_count = 5;
+unsigned int terminal_colors_index = 0;
+
+void print_ExpressionTree(ExpressionTreeNode *tree){
+    if (tree==NULL){
+        printf("print_ExpressionTree(NULL)");
+        return;
+    }
+
+    //printf("\n");
+
+    if (tree->type==OPERAND_NODE){
+        print_Operand(((Operand*)tree->token.data));
+    }
+
+    else if (tree->type==OPERATOR_NODE){
+        if (((const Operator*)tree->token.data)->fix==PREFIX){
+            printf("\033[%dm%s(\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count],((const Operator*)tree->token.data)->symbol);
+            ExpressionTreeNode_ListNode *cur = tree->args.head;
+            while (cur){
+                terminal_colors_index++;
+                print_ExpressionTree(cur->treeNode);
+                terminal_colors_index--;
+                cur = cur->next;
+                if (cur) printf(",");
+            }
+            printf("\033[%dm)\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
+        }
+        else if (((const Operator*)tree->token.data)->fix==INFIX){
+            printf("\033[%dm(\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
+            terminal_colors_index++;
+            print_ExpressionTree(tree->args.head->treeNode);
+            terminal_colors_index--;
+            printf("\033[%dm%s\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count],((const Operator*)tree->token.data)->symbol);
+            terminal_colors_index++;
+            print_ExpressionTree(tree->args.tail->treeNode);
+            terminal_colors_index--;
+            printf("\033[%dm)\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
+        }
+        else if (((const Operator*)tree->token.data)->fix==POSTFIX){
+            printf("\033[%dm(\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
+            ExpressionTreeNode_ListNode *cur = tree->args.head;
+            while (cur){
+                terminal_colors_index++;
+                print_ExpressionTree(cur->treeNode);
+                terminal_colors_index--;
+                cur = cur->next;
+                if (cur) printf(",");
+            }
+            printf("\033[%dm)",terminal_colors[terminal_colors_index%terminal_colors_count]);
+            printf("%s\033[0m",((const Operator*)tree->token.data)->symbol);
+        }
+    }
+
+    else if (tree->type==LIST_NODE){
+        printf("\033[%dmL(\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
+        ExpressionTreeNode_ListNode *cur = tree->args.head;
+        while (cur){
+            terminal_colors_index++;
+            print_ExpressionTree(cur->treeNode);
+            terminal_colors_index--;
+            cur = cur->next;
+            if (cur) printf("\033[%dm,\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
+        }
+        printf("\033[%dm)\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
+    }
+
+    else{
+        //printf("print_ExpressionTree(INCOMPLETE)");
+        printf("\033[%dmINCOMPLETE(\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
+        ExpressionTreeNode_ListNode *cur = tree->args.head;
+        while (cur){
+            terminal_colors_index++;
+            print_ExpressionTree(cur->treeNode);
+            terminal_colors_index--;
+            cur = cur->next;
+            if (cur) printf(",");
+        }
+        printf("\033[%dm)\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
+    }
+
+    return;
+}
+
+
 
 
 

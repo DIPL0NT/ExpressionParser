@@ -116,7 +116,7 @@ void *parseOperandStringFormatToVoidPtr(char *s){
 	//for floats
 	OPERAND_VALUE_TYPE f;
 	if (0==sscanf(s,"%f",&f)){
-		printf("ERROR in parseOperandStringFormatToVoidPtr() : couldn't parse %s\n",s);
+		printf("\033[31mERROR\033[0m in parseOperandStringFormatToVoidPtr() : couldn't parse %s\n",s);
 		return NULL;
 	}
 	return (void*) alloc_Operand(f);
@@ -140,6 +140,10 @@ void print_OperandValue(OPERAND_VALUE_TYPE val){
 }
 
 void print_Operand(Operand *o){
+	if (!o){
+		printf("print_Operand(NULL)");
+		return;
+	}
 	print_OperandValue(o->value);
 	return;
 }
@@ -151,16 +155,24 @@ void print_Operand(Operand *o){
 * 	3) No char is both in an Operator symbol and in the Operand string format
 */
 int checkCompatibilityOperatorAndOperandChars(){
+
+	for (int i=0;i<NUMofOPERATORS;i++){
+		if (operators[i]->fix==INFIX && operators[i]->arity!=2){
+			printf("\033[31mERROR\033[0m in Operator \"\033[36m%s\033[0m\"'s definition: an INFIX operator must have arity=2\n",operators[i]->symbol);
+			return 0;
+		}
+	}
+
 	if (
 		isOperatorChar('\0') || isOperatorChar('(') || isOperatorChar(')') || isOperatorChar(',')
 	){
-		printf("ERROR in Operator symbols definition: a reserved char ('\\0','(',')',',') is recognized as an Operator char by isOperatorChar()\n");
+		printf("\033[31mERROR\033[0m in Operator symbols definition: a reserved char ('\\0','(',')',',') is recognized as an Operator char by isOperatorChar()\n");
 		return 0;
 	}
 	if (
 		isOperandChar('\0') || isOperandChar('(') || isOperandChar(')') || isOperandChar(',')
 	){
-		printf("ERROR in Operand string format definition: a reserved char ('\\0','(',')',',') is recognized as an Operand char by isOperandChar()\n");
+		printf("\033[31mERROR\033[0m in Operand string format definition: a reserved char ('\\0','(',')',',') is recognized as an Operand char by isOperandChar()\n");
 		return 0;
 	}
 	
@@ -169,16 +181,14 @@ int checkCompatibilityOperatorAndOperandChars(){
 			(char)i != '\0' && (char)i != '(' &&(char)i != ')' && (char)i != ','
 			&& isOperatorChar((char)i) && isOperandChar((char)i)
 		){
-			printf("ERROR due to incompatible Operator symbols and Operand string format definitions: char %c is recognized both as an Operator char by isOperatorChar() and as an Operand char by isOperandChar()\n",(char)i);
+			printf("\033[31mERROR\033[0m due to incompatible Operator symbols and Operand string format definitions: char %c is recognized both as an Operator char by isOperatorChar() and as an Operand char by isOperandChar()\n",(char)i);
 			return 0;
 		}
 	}
-	printf("CORRECT Operator symbols and Operand string format definitions\n");
+
+	printf("\033[32mCORRECT\033[0m Operator symbols and Operand string format definitions\n");
 	return 1;
 }
-
-
-
 
 
 

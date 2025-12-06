@@ -72,7 +72,7 @@ ExpressionString create_ExpressionString(char* str){
 		}
 		if (str[j]==')'){
 			if (parenthesis_count<1){
-				printf("ERROR while parsing expression string: %s (surplus closed parenthesis in position %d)\n",str,j);
+				printf("\033[31mERROR\033[0m while parsing expression string: %s (surplus closed parenthesis in position %d)\n",str,j);
 				free(es.str);
 				es.str=NULL;
 				return es;
@@ -84,13 +84,13 @@ ExpressionString create_ExpressionString(char* str){
 		}
 		if (str[j]==','){
 			if ( str[i-1]=='(' || str[i-1]==' '&&str[i-2]==',' ){
-				printf("ERROR while parsing expression string: %s (opening parenthesis followed by comma in position %d)\n",str,j);
+				printf("\033[31mERROR\033[0m while parsing expression string: %s (opening parenthesis followed by comma in position %d)\n",str,j);
 				free(es.str);
 				es.str=NULL;
 				return es;
 			}
 			if ( str[i-1]==',' ){
-				printf("ERROR while parsing expression string: %s (comma followed by comma in position %d)\n",str,j);
+				printf("\033[31mERROR\033[0m while parsing expression string: %s (comma followed by comma in position %d)\n",str,j);
 				free(es.str);
 				es.str=NULL;
 				return es;
@@ -101,7 +101,7 @@ ExpressionString create_ExpressionString(char* str){
 	}
 
 	if (parenthesis_count>0){
-		printf("ERROR while parsing expression string: %s (missing closed parenthesis)\n",str);
+		printf("\033[31mERROR\033[0m while parsing expression string: %s (missing closed parenthesis)\n",str);
 		free(es.str);
 		es.str=NULL;
 		return es;
@@ -159,7 +159,7 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(ExpressionString 
 		tok.type = OPERAND;
 		tok.data = parseOperandStringFormatToVoidPtr(es->str+es->index);
 		if (tok.data==NULL){ //the operand string format wasn't recognized
-			printf("Parsing error in expression string: %s (unable to identify operand string format in position %d)\n",es->str,es->index);
+			printf("\033[31mERROR\033[0m while parsing expression string: %s (unable to identify operand string format in position %d)\n",es->str,es->index);
 			tok.type = NULLTERM;
 		}
 		es->str[i] = tmp;
@@ -167,7 +167,7 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(ExpressionString 
 		return tok;
 	}
 
-	while ( !isOperandChar(es->str[i]) &&es->str[i]!='(' &&es->str[i]!=')' &&es->str[i]!=',' &&es->str[i]!='\0') i++;
+	while (!isWhiteSpace(es->str[i]) && !isOperandChar(es->str[i]) &&es->str[i]!='(' &&es->str[i]!=')' &&es->str[i]!=',' &&es->str[i]!='\0') i++;
 		
 	char tmp = es->str[i];
 	es->str[i] = '\0';
@@ -182,7 +182,7 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(ExpressionString 
 	}
 	
 	//if we get here parseOperandStringFormatToVoidPtr wasn't able to parse the token so there must be an error (either operator symbol misspelling or incorrect operand string format)
-	printf("Parsing error in expression string: %s (unable to identify token in position %d)\n",es->str,es->index);
+	printf("\033[31mERROR\033[0m while parsing expression string: %s (unable to identify token in position %d)\n",es->str,es->index);
 
 	tok.type = NULLTERM;
 	tok.data = NULL;
