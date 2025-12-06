@@ -1,11 +1,5 @@
 #include "Operators_and_Operands_definitions.c"
 
-/* OLD, USED BY OLD OIMPLEMENTATION OF ExpressionTree
-typedef enum{NULLTERM,EMPTY,OPENPAR,CLOSEPAR,COMMA,OPERATOR,OPERAND,EXPRESSIONTREENODE_LIST} ExpressionTokenType;
-//EXPRESSIONTREENODE_LIST is to be used when creating the expression tree
-//, its data must be NULL since the actual list is referenced byt the TreeNode
-*/
-
 typedef enum{NULLTERM,OPENPAR,CLOSEPAR,COMMA,OPERATOR,OPERAND} ExpressionTokenType;
 
 typedef struct ExpressionToken{
@@ -61,8 +55,9 @@ ExpressionString create_ExpressionString(char* str){
 	es.str = malloc( (es.len+1)*sizeof(char) );
 	//if (!es.str) ...
 	int i = 0;
-	es.str[i++] = '(';
 	int parenthesis_count=0;
+	es.str[i++] = '(';
+	parenthesis_count++;
 	int j=0;
 	while (str[j]!='\0'){
 		if (isWhiteSpace(str[j])){
@@ -83,14 +78,16 @@ ExpressionString create_ExpressionString(char* str){
 			parenthesis_count++;
 		}
 		if (str[j]==','){
-			if ( str[i-1]=='(' || str[i-1]==' '&&str[i-2]==',' ){
+			if ( es.str[i-1]=='(' || es.str[i-1]==' '&&es.str[i-2]=='(' ){
 				printf("\033[31mERROR\033[0m while parsing expression string: %s (opening parenthesis followed by comma in position %d)\n",str,j);
 				free(es.str);
 				es.str=NULL;
 				return es;
 			}
-			if ( str[i-1]==',' ){
+			if ( es.str[i-1]==',' || es.str[i-1]==' '&&es.str[i-2]==',' ){
 				printf("\033[31mERROR\033[0m while parsing expression string: %s (comma followed by comma in position %d)\n",str,j);
+				es.str[i]=0;
+				printf("\n%s",es.str);
 				free(es.str);
 				es.str=NULL;
 				return es;
@@ -99,6 +96,10 @@ ExpressionString create_ExpressionString(char* str){
 
 		es.str[i++] = str[j++];
 	}
+	es.str[i++] = ')';
+	parenthesis_count--;
+	es.str[i] = '\0';
+	//es.str;
 
 	if (parenthesis_count>0){
 		printf("\033[31mERROR\033[0m while parsing expression string: %s (missing closed parenthesis)\n",str);
@@ -107,10 +108,7 @@ ExpressionString create_ExpressionString(char* str){
 		return es;
 	}
 	
-	es.str[i] = ')';
-	es.str[i+1] = '\0';
-	es.str;
-
+	
 	return es;
 }
 
@@ -120,7 +118,7 @@ ExpressionString create_ExpressionString(char* str){
 */
 //CUSTOMIZE isOperandChar() BASED ON THE STRING FORMAT FOR THE TYPE OF VALUE OF THE OPERANDS
 //WORKS ON ASSUMPTION THAT ANY CHAR THAT ISN'T '\0', '(', ')', AND DOESN'T GET RECOGNIZED BY isWhiteSpace() AND isOperandChar() MUST BE PART OF AN OPERATOR SYMBOL
-ExpressionToken get_next_ExpressionToken_from_ExpressionString(ExpressionString *es){
+ExpressionToken get_next_ExpressionToken_from_ExpressionString_NoOverlappingChars(ExpressionString *es){
 	ExpressionToken tok = {NULLTERM,NULL};
 
 	int i = es->index;
@@ -168,7 +166,14 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(ExpressionString 
 	}
 
 	while (!isWhiteSpace(es->str[i]) && !isOperandChar(es->str[i]) &&es->str[i]!='(' &&es->str[i]!=')' &&es->str[i]!=',' &&es->str[i]!='\0') i++;
-		
+	
+	/*
+	TODO:
+	TO solve problem that two operators written without space or parenthesis between them don't get recognized
+	eg "2+-1" doesn't get recognized as "2 + -1" because it interprets "+-" as one symbol
+	eg "Z+I" gets interpreted as one instead of "Z + I"
+	*/
+
 	char tmp = es->str[i];
 	es->str[i] = '\0';
 	for (int j=0;j<NUMofOPERATORS;j++){
@@ -200,7 +205,9 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(ExpressionString 
 // begin with operatorChar and end with isOperandChars
 //cant have operatorChar*isOperandChar*operatorChar
 //cant have isOperandChar*operatorChar
-ExpressionToken get_next_ExpressionToken_from_ExpressionString_OperatorAndOperandsHaveOverlappingChars(ExpressionString *es){
+
+//get_next_ExpressionToken_from_ExpressionString_OperatorAndOperandsHaveOverlappingChars
+ExpressionToken get_next_ExpressionToken_from_ExpressionString(ExpressionString *es){
 	ExpressionToken tok = {NULLTERM,NULL};
 
 	char tmp = 0;

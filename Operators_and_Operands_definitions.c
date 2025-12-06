@@ -39,6 +39,18 @@ float powFunc(OPERAND_VALUE_TYPE args[2]){
 	return pow(args[0],args[1]);
 }
 
+float zeroFunc(){
+	return 0.0;
+}
+
+float oneFunc(){
+	return 1.0;
+}
+
+float trisumFunc(OPERAND_VALUE_TYPE args[3]){
+	return args[0]+args[1]+args[2];
+}
+
 typedef enum{PREFIX,INFIX,POSTFIX} Fix;
 typedef struct Operator{
 	const char* symbol;
@@ -49,7 +61,7 @@ typedef struct Operator{
 } Operator;
 
 //reserved chars '\0', '(', ')', ','
-//supported arities: 0, 1, 2
+//supported arities: any for PREFIX and POSTFIX, 2 for INFIX
 //                       symbol   arity  fix     precedence   function
 const Operator sumOp  = {"+"	 ,2     ,INFIX  ,0          , sumFunc	};
 const Operator subOp  = {"-"	 ,2     ,INFIX  ,0          , subFunc	};
@@ -57,8 +69,12 @@ const Operator multOp = {"*"	 ,2     ,INFIX  ,1          , multFunc	};
 const Operator divOp  = {"/"     ,2     ,INFIX  ,1          , divFunc	};
 const Operator sqrtOp = {"sqrt"	 ,1     ,PREFIX ,2          , sqrtFunc	};
 const Operator powOp  = {"^"	 ,2     ,INFIX  ,2          , powFunc	};
-#define NUMofOPERATORS 6
-const Operator *operators[NUMofOPERATORS] = {&sumOp,&subOp,&multOp,&divOp,&sqrtOp,&powOp};
+const Operator zeroOp = {"Z"	 ,0     ,PREFIX ,3          , zeroFunc	};
+const Operator oneOp  = {"I"	 ,0     ,PREFIX ,3          , oneFunc	};
+const Operator trisumOp = {"trisum"	 ,3     ,PREFIX ,2          , trisumFunc	};
+
+const Operator *operators[] = {&sumOp,&subOp,&multOp,&divOp,&sqrtOp,&powOp,&zeroOp,&oneOp,&trisumOp};
+int NUMofOPERATORS = sizeof(operators) / sizeof(Operator*);
 
 int isOperatorChar(char c){ //could be implemented as table, blah blah blah
 	for (int i=0;i<NUMofOPERATORS;i++){
@@ -161,6 +177,13 @@ int checkCompatibilityOperatorAndOperandChars(){
 			printf("\033[31mERROR\033[0m in Operator \"\033[36m%s\033[0m\"'s definition: an INFIX operator must have arity=2\n",operators[i]->symbol);
 			return 0;
 		}
+
+		for (int j=i+1;j<NUMofOPERATORS;j++){
+			if (!strcmp(operators[i]->symbol,operators[j]->symbol)){
+				printf("\033[31mERROR\033[0m in Operator symbols definition: operators number %d and %d have the same symbol \"\033[36m%s\033[0m\"\n",i,j,operators[i]->symbol);
+				return 0;
+			}
+		}
 	}
 
 	if (
@@ -189,6 +212,8 @@ int checkCompatibilityOperatorAndOperandChars(){
 	printf("\033[32mCORRECT\033[0m Operator symbols and Operand string format definitions\n");
 	return 1;
 }
+
+
 
 
 

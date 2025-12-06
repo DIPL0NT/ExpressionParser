@@ -6,14 +6,20 @@ int main(){
 		return 1;
 	}
 
-	//print_avalaible_Operators();
+	print_avalaible_Operators();
 
 	//char input[] = "11";
-	char input[] = "sqrt( 0.1/4^.2 +5.7)";
+	//char input[] = "2+2";
+	//char input[] = "sqrt( 0.1/4^.2 +5.7)"; //Result = 2.403286
 	//char input[] = " 4 + 3^2";
-	//char input[] = "sqrt (0.1) /4^.2 +5.7";
-	//char input[] = "sqrt( 0.1^4/.2 +5.7)";
-	printf("Input: %s\n",input);
+	//char input[] = "sqrt (0.1) /4^.2 +5.7"; //Result = 5.939656
+	//char input[] = "sqrt 0.1 /4^.2 +5.7"; //Result = 5.939656
+	//char input[] = "sqrt( 0.1^4/.2 +5.7)"; //Result = 2.387572
+
+	//char input[] = "trisum 1(2, 3)"; //Result = 6
+	char input[] = "Z+I+I"; //Result = 2
+
+	printf("Input: \033[7m%s\033[0m\n",input);
 	
 	ExpressionString es = create_ExpressionString(input);
 	/*

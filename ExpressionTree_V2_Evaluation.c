@@ -123,7 +123,7 @@ void print_ExpressionTree(ExpressionTreeNode *tree){
                 print_ExpressionTree(cur->treeNode);
                 terminal_colors_index--;
                 cur = cur->next;
-                if (cur) printf(",");
+                if (cur) printf("\033[%dm,\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
             }
             printf("\033[%dm)\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
         }
@@ -146,7 +146,7 @@ void print_ExpressionTree(ExpressionTreeNode *tree){
                 print_ExpressionTree(cur->treeNode);
                 terminal_colors_index--;
                 cur = cur->next;
-                if (cur) printf(",");
+                if (cur) printf("\033[%dm,\033[0m",terminal_colors[terminal_colors_index%terminal_colors_count]);
             }
             printf("\033[%dm)",terminal_colors[terminal_colors_index%terminal_colors_count]);
             printf("%s\033[0m",((const Operator*)tree->token.data)->symbol);
