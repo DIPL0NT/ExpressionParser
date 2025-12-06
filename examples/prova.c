@@ -29,6 +29,13 @@ int main(){
 	printf("I scanned the float %f\n",res);
 	*/
 
+	/*
+	float a = 2.0f;
+	float b = 2.0f;
+	float args[2]; args[0]=a; args[1]=b;
+	printf("%f %s %f = %f \n",a,sumOp.symbol,b, sumOp.function(args) );   //( (float(*)(float,float))sumOp.function )(a,b) );
+	*/
+
 	args X = {1,2,3,4};
 
 	args Y = X ;

@@ -42,6 +42,11 @@ OperandVec *combine_OperandVec(OperandVec *vec1,OperandVec *vec2){
 
 
 OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
+    if (!tree){
+        printf("\033[31mERROR\033[0m evaluate_ExpressionTree(NULL)\n");
+        return NULL;
+    }
+
 	OperandVec *result = NULL;
 	if (tree->type==OPERAND_NODE){
 		result = alloc_OperandVec(1);
