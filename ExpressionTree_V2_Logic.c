@@ -3,7 +3,7 @@
 int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTreeNode *currentNode);
 
 ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector(ExpressionToken_Vector *vec){
-    ExpressionTreeNode *tree = alloc_ExpressionTreeNode(NULL,INCOMPLETE, get_next_ExpressionToken_from_ExpressionToken_Vector(vec) );
+    ExpressionTreeNode *tree = alloc_ExpressionTreeNode(NULL,INCOMPLETE_NODE, get_next_ExpressionToken_from_ExpressionToken_Vector(vec) );
     //if (!tree) ...
 
     int res = fill_INCOMPLETE_ExpressionTreeNode(vec,tree);
@@ -24,7 +24,7 @@ ExpressionTreeNode *create_LIST_ExpressionTreeNode_from_ExpressionToken_Vector(E
     int complete = 0;
     ExpressionTreeNode *listElement = NULL;
     while (!complete){
-        listElement = alloc_ExpressionTreeNode(tree,INCOMPLETE,(ExpressionToken){OPENPAR,NULL});
+        listElement = alloc_ExpressionTreeNode(tree,INCOMPLETE_NODE,(ExpressionToken){OPENPAR,NULL});
         complete = fill_INCOMPLETE_ExpressionTreeNode(vec,listElement);
         addToTail_ExpressionTreeNode_List(&tree->args,listElement);
     }
@@ -53,7 +53,7 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
         
         case (CLOSEPAR):{
             //check if operators all have all their args
-            while (currentNode->type!=INCOMPLETE){
+            while (currentNode->type!=INCOMPLETE_NODE){
                 if (currentNode->type==OPERATOR_NODE && currentNode->args.count!=((const Operator*)currentNode->token.data)->arity){
                     printf("\033[31mERROR\033[0m while parsing (argument count %d != \033[36m%d\033[0m = operator \"\033[36m%s\033[0m\"'s arity\n",currentNode->args.count,((Operator*)currentNode->token.data)->arity,((Operator*)currentNode->token.data)->symbol);
                     error = 2;
@@ -63,13 +63,13 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
             }
 
             if (currentNode->args.count > 1){
-                printf("\nINCOMPLETE had type: %d",currentNode->type);
+                printf("\nINCOMPLETE_NODE had type: %d",currentNode->type);
                 currentNode->type = LIST_NODE;
-                printf(" INCOMPLETE now has type: %d\n",currentNode->type);
+                printf(" INCOMPLETE_NODE now has type: %d\n",currentNode->type);
             }
             else{
                 ExpressionTreeNode *actualNode = removeHead_ExpressionTreeNode_List(&currentNode->args); //in this case equivalent to removeTail
-                printf("\nINCOMPLETE had type: %d",currentNode->type);
+                printf("\nINCOMPLETE_NODE had type: %d",currentNode->type);
                 currentNode->type = actualNode->type;
                 printf(" Actual type: %d\n",actualNode->type);
                 currentNode->token = actualNode->token;
@@ -82,7 +82,7 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
         }
         case (COMMA):{
             //check if operators all have all their args
-            while (currentNode->type!=INCOMPLETE){
+            while (currentNode->type!=INCOMPLETE_NODE){
                 if (currentNode->type==OPERATOR_NODE && currentNode->args.count!=((const Operator*)currentNode->token.data)->arity){
                     printf("\033[31mERROR\033[0m while parsing token number %d (argument count %d != \033[36m%d\033[0m = operator \"\033[36m%s\033[0m\"'s arity\n",vec->index-1,currentNode->args.count,((Operator*)currentNode->token.data)->arity,((Operator*)currentNode->token.data)->symbol);
                     error = 2;
@@ -179,7 +179,7 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
                 currentOp = newOp;
             }
             else if (newOp->fix==INFIX){
-                if (currentNode->type==INCOMPLETE){
+                if (currentNode->type==INCOMPLETE_NODE){
                     if (currentNode->args.count<1){
                         printf("\033[31mERROR\033[0m while parsing token number %d (INFIX operator \"\033[36m%s\033[0m\" must have exactely one operand before it)\n",vec->index-1,newOp->symbol);
                         error = 2;
@@ -191,7 +191,8 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
                     currentNode = newNode;
                     currentOp = newOp;
                 }
-                else if (currentNode->type==OPERATOR){
+                else if (currentNode->type==OPERATOR_NODE){
+                    printf("\nPrecedence stuff\n");
                     if (newOp->precedence > currentOp->precedence){
                         if (currentNode->args.count<1){
                             printf("\033[31mERROR\033[0m while parsing token number %d (INFIX operator \"\033[36m%s\033[0m\" must have exactely one operand before it)\n",vec->index-1,newOp->symbol);
@@ -205,7 +206,7 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
                         currentOp = newOp;
                     }
                     else{ // newOp->precedence <= currentOp->precedence
-                        while (currentNode->root->type!=INCOMPLETE && newOp->precedence <= currentOp->precedence){
+                        while (currentNode->root->type!=INCOMPLETE_NODE && newOp->precedence <= currentOp->precedence){
                             if (currentNode->args.count != currentOp->arity){
                                 printf("\033[31mERROR\033[0m while parsing (insufficient arg count for operator \"\033[36m%s\033[0m\")\n",currentOp->symbol);
                                 error = 2;
@@ -230,9 +231,13 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
                 }
             }
             else if (newOp->fix==POSTFIX){
-                while (currentNode->type!=INCOMPLETE){
+                while (currentNode->type!=INCOMPLETE_NODE){
                     currentNode = currentNode->root;
                 }
+                /*
+                TODO:
+                handle case where the INCOMPLETE node has args that are lists that must be considered as args for the POSTFIX operator
+                */
                 if (currentNode->args.count < newOp->arity){
                     printf("\033[31mERROR\033[0m while parsing token number %d (argument count < \033[36m%d\033[0m) = operator \"\033[36m%s\033[0m\"'s arity\n",vec->index-1,newOp->arity,newOp->symbol);
                     error = 2;

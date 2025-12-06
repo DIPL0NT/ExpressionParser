@@ -1,6 +1,6 @@
 #include "ExpressionToken.c"
 
-typedef enum{LIST_NODE,INCOMPLETE,OPERAND_NODE,OPERATOR_NODE} ExpressionTreeNodeType;
+typedef enum{LIST_NODE,INCOMPLETE_NODE,OPERAND_NODE,OPERATOR_NODE} ExpressionTreeNodeType;
 typedef struct ExpressionTreeNode ExpressionTreeNode;
 
 typedef struct ExpressionTreeNode_ListNode{

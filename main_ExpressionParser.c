@@ -9,9 +9,10 @@ int main(){
 	//print_avalaible_Operators();
 
 	//char input[] = "11";
-	//char input[] = "sqrt( 0.1/4**.2 +5.7)";
-	char input[] = "sqrt (0.1) /4**.2 +5.7";
-	//char input[] = "sqrt( 0.1**4/.2 +5.7)";
+	char input[] = "sqrt( 0.1/4^.2 +5.7)";
+	//char input[] = " 4 + 3^2";
+	//char input[] = "sqrt (0.1) /4^.2 +5.7";
+	//char input[] = "sqrt( 0.1^4/.2 +5.7)";
 	printf("Input: %s\n",input);
 	
 	ExpressionString es = create_ExpressionString(input);

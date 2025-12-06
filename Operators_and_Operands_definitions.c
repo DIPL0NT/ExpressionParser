@@ -56,7 +56,7 @@ const Operator subOp  = {"-"	 ,2     ,INFIX  ,0          , subFunc	};
 const Operator multOp = {"*"	 ,2     ,INFIX  ,1          , multFunc	};
 const Operator divOp  = {"/"     ,2     ,INFIX  ,1          , divFunc	};
 const Operator sqrtOp = {"sqrt"	 ,1     ,PREFIX ,2          , sqrtFunc	};
-const Operator powOp  = {"**"	 ,2     ,INFIX  ,2          , powFunc	};
+const Operator powOp  = {"^"	 ,2     ,INFIX  ,2          , powFunc	};
 #define NUMofOPERATORS 6
 const Operator *operators[NUMofOPERATORS] = {&sumOp,&subOp,&multOp,&divOp,&sqrtOp,&powOp};
 
