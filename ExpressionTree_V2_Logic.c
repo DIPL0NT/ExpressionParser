@@ -196,12 +196,24 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
                         currentNode->token = currentToken;
                         currentOp = newOp;
                         currentNode->args = create_ExpressionTreeNode_List();
-                        addToHead_ExpressionTreeNode_List(&currentNode->args,newNode);
+                        addToHead_ExpressionTreeNode_List(&currentNode->args,newNode); //empty list so it's equivalent to addToTail
                     }
                 }
             }
             else if (newOp->fix==POSTFIX){
-                
+                while (currentNode->type!=INCOMPLETE){
+                    currentNode = currentNode->root;
+                }
+                if (currentNode->args.count < newOp->arity){
+                    printf("ERROR while parsing token number %d (argument count < \033[36m%d\033[0m) = operator \"\033[36m%s\033[0m\"'s arity\n",vec->index-1,newOp->arity,newOp->symbol);
+                    error = 2;
+                    return error;
+                }
+                ExpressionTreeNode *newNode = alloc_ExpressionTreeNode(currentNode,OPERATOR_NODE,currentToken);
+                for (int i=0;i<newOp->arity;i++){
+                    addToHead_ExpressionTreeNode_List(&newNode->args,removeTail_ExpressionTreeNode_List(&currentNode->args));
+                }
+                addToTail_ExpressionTreeNode_List(&currentNode->args,newNode);
             }
 
             break;
@@ -210,7 +222,7 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
         default:{
             printf("ERROR while parsing token number %d (unexpected token type %d)\n",vec->index-1,currentToken.type);
             error = -2;
-            return -2;
+            return error;
         }
 
         }
