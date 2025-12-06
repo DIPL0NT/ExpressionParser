@@ -9,9 +9,9 @@ ExpressionTreeNode *create_ExpressionTree_from_ExpressionToken_Vector(Expression
     int res = fill_INCOMPLETE_ExpressionTreeNode(vec,tree);
     if (res!=0 && res!=1){
         printf("\033[31mERROR\033[0m while parsing occurred (%d)\n",res);
-        //free_ExpressionTreeNode(tree);
-        //return NULL;
-        return tree;
+        free_ExpressionTreeNode(tree);
+        return NULL;
+        //return tree;
     }
 
     return tree;
@@ -31,9 +31,9 @@ ExpressionTreeNode *create_LIST_ExpressionTreeNode_from_ExpressionToken_Vector(E
     
     if (complete!=1){ //an error occurred
         printf("\033[31mERROR\033[0m while parsing occurred (%d)\n",complete);
-        //free_ExpressionTreeNode(tree);
-        //return NULL;
-        return tree;
+        free_ExpressionTreeNode(tree);
+        return NULL;
+        //return tree;
     }
 
     return tree;
@@ -63,15 +63,11 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
             }
 
             if (currentNode->args.count > 1){
-                printf("\nINCOMPLETE_NODE had type: %d",currentNode->type);
                 currentNode->type = LIST_NODE;
-                printf(" INCOMPLETE_NODE now has type: %d\n",currentNode->type);
             }
             else{
                 ExpressionTreeNode *actualNode = removeHead_ExpressionTreeNode_List(&currentNode->args); //in this case equivalent to removeTail
-                printf("\nINCOMPLETE_NODE had type: %d",currentNode->type);
                 currentNode->type = actualNode->type;
-                printf(" Actual type: %d\n",actualNode->type);
                 currentNode->token = actualNode->token;
                 currentNode->args = actualNode->args;
                 free(actualNode);
@@ -102,7 +98,6 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
             else{
                 ExpressionTreeNode *actualNode = removeHead_ExpressionTreeNode_List(&currentNode->args); //in this case equivalent to removeTail
                 currentNode->type = actualNode->type;
-                printf("\nActual type: %d\n",actualNode->type);
                 currentNode->token = actualNode->token;
                 currentNode->args = actualNode->args;
                 free(actualNode);
@@ -139,12 +134,6 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
             else{
                 addToTail_ExpressionTreeNode_List(&currentNode->args,subtree);
             }
-            /*
-            while (currentNode->type==OPERATOR_NODE && currentNode->args.count==currentOp->arity){
-                currentNode = currentNode->root;
-                currentOp = (const Operator*)currentNode->token.data ;
-            }
-            */
 
             break;
         }
@@ -156,12 +145,6 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
             }
             
             addToTail_ExpressionTreeNode_List(&currentNode->args, alloc_ExpressionTreeNode(currentNode,OPERAND_NODE,currentToken) );
-            /*
-            while (currentNode->type==OPERATOR_NODE && currentNode->args.count==currentOp->arity){
-                currentNode = currentNode->root;
-                currentOp = (const Operator*)currentNode->token.data ;
-            }
-            */
 
             break;
         }
@@ -192,7 +175,6 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
                     currentOp = newOp;
                 }
                 else if (currentNode->type==OPERATOR_NODE){
-                    printf("\nPrecedence stuff\n");
                     if (newOp->precedence > currentOp->precedence){
                         if (currentNode->args.count<1){
                             printf("\033[31mERROR\033[0m while parsing token number %d (INFIX operator \"\033[36m%s\033[0m\" must have exactely one operand before it)\n",vec->index-1,newOp->symbol);
@@ -262,8 +244,6 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
         }
 
     }
-
-    //if (currentNode->root->type)
     
     return 0;
 }
