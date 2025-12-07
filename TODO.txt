@@ -1,0 +1,19 @@
+TODO:
+	
+*   TO solve problem that two operators written without space or parenthesis between them don't get recognized
+	eg "2+-1" doesn't get recognized as "2 + -1" because it interprets "+-" as one symbol
+	eg "Z+I" gets interpreted as one instead of "Z + I"
+
+    Possible implementation:
+    1) have a list of defined symbols
+    2) create a decision tree with chars in the nodes
+        s                   p                      
+     u     q             o      r                   
+   (sum) u    r      (power) (product)                              
+    (square) (sqrt) 
+    3) when scanning the input string follow the decision tree to see if the word is a recognized symbol or not
+
+*   TO complete implementation of POSTFIX operators
+
+*   TO implement evaluation of a tree to a list
+
