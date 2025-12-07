@@ -118,6 +118,7 @@ ExpressionString create_ExpressionString(char* str){
 */
 //CUSTOMIZE isOperandChar() BASED ON THE STRING FORMAT FOR THE TYPE OF VALUE OF THE OPERANDS
 //WORKS ON ASSUMPTION THAT ANY CHAR THAT ISN'T '\0', '(', ')', AND DOESN'T GET RECOGNIZED BY isWhiteSpace() AND isOperandChar() MUST BE PART OF AN OPERATOR SYMBOL
+//
 ExpressionToken get_next_ExpressionToken_from_ExpressionString_NoOverlappingChars(ExpressionString *es){
 	ExpressionToken tok = {NULLTERM,NULL};
 
@@ -205,9 +206,8 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString_NoOverlappingChar
 // begin with operatorChar and end with isOperandChars
 //cant have operatorChar*isOperandChar*operatorChar
 //cant have isOperandChar*operatorChar
-
-//get_next_ExpressionToken_from_ExpressionString_OperatorAndOperandsHaveOverlappingChars
-ExpressionToken get_next_ExpressionToken_from_ExpressionString(ExpressionString *es){
+//
+ExpressionToken get_next_ExpressionToken_from_ExpressionString/*_OperatorAndOperandsHaveOverlappingChars*/(ExpressionString *es){
 	ExpressionToken tok = {NULLTERM,NULL};
 
 	char tmp = 0;
@@ -377,5 +377,8 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionToken_Vector(ExpressionT
 
 	return vec->array[vec->index++];
 }
+
+
+
 
 
