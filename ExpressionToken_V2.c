@@ -1,4 +1,4 @@
-#include "Operators_and_Operands_definitions.c"
+#include "ExpressionContext_V2.c"
 
 typedef enum{NULLTERM,OPENPAR,CLOSEPAR,COMMA,OPERATOR,OPERAND} ExpressionTokenType;
 
@@ -7,14 +7,14 @@ typedef struct ExpressionToken{
 	void *data;
 } ExpressionToken;
 
-void release_ExpressionToken(ExpressionToken tok){
+void release_ExpressionToken(ExpressionContext *context,ExpressionToken tok){
 	if (tok.type==OPERAND){
-		free_Operand((Operand*)tok.data);
+		context->free_Operand((Operand*)tok.data);
 	}
 	return;
 }
 
-void print_ExpressionToken(ExpressionToken tok){
+void print_ExpressionToken(ExpressionContext *context,ExpressionToken tok){
 	if (tok.type==NULLTERM){
 		printf("\033[31m\\0\033[0m");
 		return;
@@ -36,7 +36,7 @@ void print_ExpressionToken(ExpressionToken tok){
 		return;
 	}
 	if (tok.type==OPERAND){
-		print_Operand((Operand*)tok.data);
+		context->print_Operand((Operand*)tok.data);
 		return;
 	}
 	return;
@@ -113,13 +113,14 @@ ExpressionString create_ExpressionString(char* str){
 }
 
 /*Symbol recognition decision tree*/
-typedef 
+//typedef 
 struct SymbolTreeNode{
     char c;
     const Operator *op;
     int branchCount;
     struct SymbolTreeNode **branches;
-} SymbolTreeNode;
+};
+// SymbolTreeNode;
 
 SymbolTreeNode *alloc_SymbolTreeNode(char c,const Operator *op){
     SymbolTreeNode *newNode = (SymbolTreeNode*)malloc(sizeof(SymbolTreeNode));
@@ -220,7 +221,8 @@ int addSymbolTo_SymbolTree(SymbolTreeNode *tree,const Operator *op){
 }
 
 //in the symbol tree the leaf nodes are those with branchCount = 0
-ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *tree,ExpressionString *es){
+ExpressionToken get_next_ExpressionToken_from_ExpressionString_TREE(ExpressionContext *context,ExpressionString *es){
+    SymbolTreeNode *tree = context->symbolTree;
     ExpressionToken tok = {NULLTERM,NULL};
 
 	char tmp = 0;
@@ -301,24 +303,208 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *t
     
     //it's an Operand
     while (es->str[i]!=' ' && !isReservedChar(es->str[i])) i++ ;
-    char tmp = es->str[i];
+    char tmpc = es->str[i];
     es->str[i] = '\0';
-    Operand *operand = parseOperandStringFormatToVoidPtr(es->str+es->index);
+    Operand *operand = context->parseOperandStringFormatToVoidPtr(es->str+es->index);
     if (!operand){
         printf("Parsing error in expression string: %s (unable to identify token in position %d: %s)\n",es->str,es->index,es->str+es->index);
         tok.type = NULLTERM;
         tok.data = NULL;
-        es->str[i] = tmp;
+        es->str[i] = tmpc;
         es->index = i;
         return tok;
     }
     tok.type = OPERAND;
     tok.data = (void*) operand;
-    es->str[i] = tmp;
+    es->str[i] = tmpc;
     es->index = i;
 
     return tok;
 }
+
+
+
+
+//OLD IMPLEMENTATION, JUST FOR TESTING
+ExpressionToken get_next_ExpressionToken_from_ExpressionString(ExpressionContext *context,ExpressionString *es){
+	ExpressionToken tok = {NULLTERM,NULL};
+
+	char tmp = 0;
+	int i = es->index;
+	while (isWhiteSpace(es->str[i])) i++;
+	es->index = i;
+	
+	if (es->str[i]=='\0'){
+		tok.type = NULLTERM;
+		tok.data = NULL;
+		es->index = i+1;
+		return tok;
+	}
+	if (es->str[i]=='('){
+		tok.type = OPENPAR;
+		tok.data = NULL;
+		es->index = i+1;
+		return tok;
+	}
+	if (es->str[i]==')'){
+		tok.type = CLOSEPAR;
+		tok.data = NULL;
+		es->index = i+1;
+		return tok;
+	}
+	if (es->str[i]==','){
+		tok.type = COMMA;
+		tok.data = NULL;
+		es->index = i+1;
+		return tok;
+	}
+	if (context->isOperandChar(es->str[i])){ //this way the entire token must be of operandChars
+		while (context->isOperandChar(es->str[i])) i++; //continue scanning until end of token
+		tmp = es->str[i];
+		es->str[i] = '\0';
+		tok.type = OPERAND;
+		tok.data = context->parseOperandStringFormatToVoidPtr(es->str+es->index);
+		if (tok.data != NULL){ //operand string format was recognized and correctely parsed
+			es->str[i] = tmp;
+			es->index = i;
+			return tok;
+		}
+		else{
+			printf("Parsing error in expression string: %s (unable to identify token in position %d)\n",es->str,es->index);
+			tok.type = NULLTERM;
+			es->str[i] = tmp;
+			es->index = i;
+			return tok;
+		}
+	}
+
+	while (!isReservedChar(es->str[i]) && !isWhiteSpace(es->str[i]) && !context->isOperandChar(es->str[i])) i++;
+	tmp = es->str[i];
+	es->str[i] = '\0';
+	for (int j=0;j<context->operatorsCount;j++){ //check if the token is an operator symbol
+		if (!strcmp(es->str+es->index,context->operators[j]->symbol)){
+			tok.type = OPERATOR;
+			tok.data = (void*) context->operators[j];
+			es->str[i] = tmp;
+			es->index = i;
+			return tok;
+		}
+	}
+	//if we get here it means the token wasn't an operator symbol, so it must be an operand
+	es->str[i] = tmp;
+	//while (!isReservedChar(es->str[i]) && !isWhiteSpace(es->str[i])) i++;
+	while (context->isOperandChar(es->str[i])) i++; //continue scanning until end of token
+	                                                //this way an operand token can:
+										            // have all chars that are also operatorChars
+										            // have all chars that are isOperandChars
+										            // begin with operatorChar and end with isOperandChars
+										            //cant have operatorChar*isOperandChar*operatorChar
+	tmp = es->str[i];
+	es->str[i] = '\0';
+	tok.type = OPERAND;
+	tok.data = context->parseOperandStringFormatToVoidPtr(es->str+es->index);
+	if (tok.data != NULL){ //operand string format was recognized and correctely parsed
+		es->str[i] = tmp;
+		es->index = i;
+		return tok;
+	}
+	
+	//if we get here parseOperandStringFormatToVoidPtr wasn't able to parse the token so there must be an error (either operator symbol misspelling or incorrect operand string format)
+	printf("Parsing error in expression string: %s (unable to identify token in position %d)\n",es->str,es->index);
+
+	tok.type = NULLTERM;
+	tok.data = NULL;
+	return tok;
+}
+
+
+
+
+typedef struct{
+	ExpressionToken *array;
+	int capacity;
+	int count;
+	int index;
+} ExpressionToken_Vector;
+
+ExpressionToken_Vector *create_ExpressionToken_Vector(int initialCapacity){
+	ExpressionToken_Vector *newVec = (ExpressionToken_Vector*)malloc(sizeof(ExpressionToken_Vector));
+	newVec->array = (ExpressionToken*)malloc(initialCapacity*sizeof(ExpressionToken));
+	//if (!newVec->array) ...
+	newVec->capacity = initialCapacity;
+	newVec->count = 0;
+	newVec->index = 0;
+
+	return newVec;
+}
+
+void free_ExpressionToken_Vector(ExpressionToken_Vector *vec){
+	//if (!vec->array) ...
+	//if (vec->count>vec->size) ...
+
+	for(int i=0;i<vec->count;i++){
+		/*
+		TODO:
+		decide where to release the tokens, here or in free_ExpressionTreeNode ?
+		*/
+		//release_ExpressionToken(vec->array[i]);
+	}
+
+	free(vec->array);
+	free(vec);
+	return;
+}
+
+void addTo_ExpressionToken_Vector(ExpressionToken_Vector *vec,ExpressionToken tok){
+	//if (!vec) ...
+	if (vec->count==vec->capacity){
+		ExpressionToken *newArray = (ExpressionToken*)malloc(vec->capacity*2*sizeof(ExpressionToken)); //magic number
+		for (int i=0;i<vec->count;i++){
+			newArray[i] = vec->array[i];
+		}
+		free(vec->array);
+		vec->array = newArray;
+		vec->capacity *= 2; //magic number
+	}
+	
+	vec->array[vec->count] = tok;
+	vec->count++;
+	return;
+}
+
+ExpressionToken_Vector *create_ExpressionToken_Vector_from_ExpressionString(ExpressionContext *context,ExpressionString *es){
+	ExpressionToken_Vector *newVec = create_ExpressionToken_Vector(10); //magic number
+	//if (!newVec) ...
+
+	do {
+		addTo_ExpressionToken_Vector(newVec,get_next_ExpressionToken_from_ExpressionString(context,es));
+	} while (newVec->array[newVec->count-1].type!=NULLTERM);
+	/*
+	if (newVec->array[newVec->count].type!=NULLTERM){
+		printf("ERROR while creating token vector: the last token is not a NULLTERM\n");
+		free_ExpressionToken_Vector(newVec);
+		return NULL;
+	}
+	*/
+
+	return newVec;
+}
+
+ExpressionToken get_next_ExpressionToken_from_ExpressionToken_Vector(ExpressionToken_Vector *vec){
+	if (vec->count==0){
+		//printf("Ciao\n");
+		return (ExpressionToken){NULLTERM,NULL};
+	}
+	if (vec->index >= vec->count){
+		//...
+		//printf("MIAO\n");
+		return (ExpressionToken){NULLTERM,NULL};
+	}
+
+	return vec->array[vec->index++];
+}
+
+
 
 
 

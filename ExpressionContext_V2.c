@@ -1,4 +1,9 @@
-#include "ExpressionToken_V2.c"
+#include "Operators_and_Operands_definitions.c"
+
+typedef struct SymbolTreeNode SymbolTreeNode;
+SymbolTreeNode *alloc_SymbolTreeNode(char c,const Operator *op);
+void free_SymbolTreeNode(SymbolTreeNode *tree);
+int addSymbolTo_SymbolTree(SymbolTreeNode *tree,const Operator *op);
 
 typedef struct ExpressionContext{
     //operand type
@@ -7,8 +12,6 @@ typedef struct ExpressionContext{
 
     const Operator **operators;
     int operatorsCount;
-
-    int (*isOperatorChar)(char);
 
     SymbolTreeNode *symbolTree;
 
@@ -33,10 +36,9 @@ typedef struct ExpressionContext{
 } ExpressionContext;
 
 
-ExpressionContext *initialise_ExpressionContext(
+ExpressionContext *alloc_ExpressionContext(
                         const Operator **operators,
                         int operatorsCount,
-                        int (*isOperatorChar)(char),
                         Operand* (*alloc_Operand)(OPERAND_VALUE_TYPE),
                         void (*release_OperandValue)(OPERAND_VALUE_TYPE),
                         void (*free_Operand)(Operand*),
@@ -50,7 +52,6 @@ ExpressionContext *initialise_ExpressionContext(
     //if (!newContext) ...
     newContext->operators = operators;
     newContext->operatorsCount = operatorsCount;
-    newContext->isOperatorChar = isOperatorChar;
 
     newContext->symbolTree = alloc_SymbolTreeNode('\0',NULL);
     for (int i=0;i<operatorsCount;i++){
@@ -68,92 +69,41 @@ ExpressionContext *initialise_ExpressionContext(
     return newContext;
 }
 
-
-
-
-
-typedef struct{
-	ExpressionToken *array;
-	int capacity;
-	int count;
-	int index;
-} ExpressionToken_Vector;
-
-ExpressionToken_Vector *create_ExpressionToken_Vector(int initialCapacity){
-	ExpressionToken_Vector *newVec = (ExpressionToken_Vector*)malloc(sizeof(ExpressionToken_Vector));
-	newVec->array = (ExpressionToken*)malloc(initialCapacity*sizeof(ExpressionToken));
-	//if (!newVec->array) ...
-	newVec->capacity = initialCapacity;
-	newVec->count = 0;
-	newVec->index = 0;
-
-	return newVec;
-}
-
-void free_ExpressionToken_Vector(ExpressionToken_Vector *vec){
-	//if (!vec->array) ...
-	//if (vec->count>vec->size) ...
-
-	for(int i=0;i<vec->count;i++){
-		/*
-		TODO:
-		decide where to release the tokens, here or in free_ExpressionTreeNode ?
-		*/
-		//release_ExpressionToken(vec->array[i]);
-	}
-
-	free(vec->array);
-	free(vec);
-	return;
-}
-
-void addTo_ExpressionToken_Vector(ExpressionToken_Vector *vec,ExpressionToken tok){
-	//if (!vec) ...
-	if (vec->count==vec->capacity){
-		ExpressionToken *newArray = (ExpressionToken*)malloc(vec->capacity*2*sizeof(ExpressionToken)); //magic number
-		for (int i=0;i<vec->count;i++){
-			newArray[i] = vec->array[i];
-		}
-		free(vec->array);
-		vec->array = newArray;
-		vec->capacity *= 2; //magic number
-	}
+void free_ExpressionContext(ExpressionContext *context){
+	//if (!context) ...
 	
-	vec->array[vec->count] = tok;
-	vec->count++;
+	free_SymbolTreeNode(context->symbolTree);
+	free(context);
+
 	return;
 }
 
-ExpressionToken_Vector *create_ExpressionToken_Vector_from_ExpressionString(SymbolTreeNode *tree,ExpressionString *es){
-	ExpressionToken_Vector *newVec = create_ExpressionToken_Vector(10); //magic number
-	//if (!newVec) ...
-
-	do {
-		addTo_ExpressionToken_Vector(newVec,get_next_ExpressionToken_from_ExpressionString(tree,es));
-	} while (newVec->array[newVec->count-1].type!=NULLTERM);
-	/*
-	if (newVec->array[newVec->count].type!=NULLTERM){
-		printf("ERROR while creating token vector: the last token is not a NULLTERM\n");
-		free_ExpressionToken_Vector(newVec);
-		return NULL;
+int isOperatorChar(ExpressionContext *context,char c){ //could be implemented as table, blah blah blah
+	for (int i=0;i<context->operatorsCount;i++){
+		for (int j=0;context->operators[i]->symbol[j]!='\0';j++){
+			if (c==context->operators[i]->symbol[j]) return 1;
+		}
 	}
-	*/
-
-	return newVec;
+	return 0;
 }
 
-ExpressionToken get_next_ExpressionToken_from_ExpressionToken_Vector(ExpressionToken_Vector *vec){
-	if (vec->count==0){
-		//printf("Ciao\n");
-		return (ExpressionToken){NULLTERM,NULL};
+void print_avalaible_Operators(ExpressionContext *context){
+	printf("Available operations:\n");
+	for (int i=0;i<context->operatorsCount;i++){
+		printf(" Symbol: \"\033[36m%s\033[0m\", Arity: \033[36m%d\033[0m, Fix: \033[36m%s\033[0m, Precedence: \033[36m%d\033[0m\n"
+				,context->operators[i]->symbol
+				,context->operators[i]->arity
+				,context->operators[i]->fix==PREFIX?"PREFIX":(
+						context->operators[i]->fix==INFIX?"INFIX":(
+							context->operators[i]->fix==POSTFIX?"POSTFIX":"ERROR"
+						)
+					)
+				,context->operators[i]->precedence
+			);
 	}
-	if (vec->index >= vec->count){
-		//...
-		//printf("MIAO\n");
-		return (ExpressionToken){NULLTERM,NULL};
-	}
-
-	return vec->array[vec->index++];
+	return;
 }
+
+
 
 

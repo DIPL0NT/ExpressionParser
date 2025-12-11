@@ -15,41 +15,43 @@ int isReservedChar(char c){
 
 #define OPERAND_VALUE_TYPE float
 
+/*
 OPERAND_VALUE_TYPE sumFunc(OPERAND_VALUE_TYPE args[2]){
 	return args[0]+args[1];
 }
 
-float subFunc(OPERAND_VALUE_TYPE args[2]){
+OPERAND_VALUE_TYPE subFunc(OPERAND_VALUE_TYPE args[2]){
 	return args[0]-args[1];
 }
 
-float multFunc(OPERAND_VALUE_TYPE args[2]){
+OPERAND_VALUE_TYPE multFunc(OPERAND_VALUE_TYPE args[2]){
 	return args[0]*args[1];
 }
 
-float divFunc(OPERAND_VALUE_TYPE args[2]){
+OPERAND_VALUE_TYPE divFunc(OPERAND_VALUE_TYPE args[2]){
 	return args[0]/args[1];
 }
 
-float sqrtFunc(OPERAND_VALUE_TYPE args[1]){
+OPERAND_VALUE_TYPE sqrtFunc(OPERAND_VALUE_TYPE args[1]){
 	return sqrt(args[0]);
 }
 
-float powFunc(OPERAND_VALUE_TYPE args[2]){
+OPERAND_VALUE_TYPE powFunc(OPERAND_VALUE_TYPE args[2]){
 	return pow(args[0],args[1]);
 }
 
-float zeroFunc(){
+OPERAND_VALUE_TYPE zeroFunc(){
 	return 0.0;
 }
 
-float oneFunc(){
+OPERAND_VALUE_TYPE oneFunc(){
 	return 1.0;
 }
 
-float trisumFunc(OPERAND_VALUE_TYPE args[3]){
+OPERAND_VALUE_TYPE trisumFunc(OPERAND_VALUE_TYPE args[3]){
 	return args[0]+args[1]+args[2];
 }
+*/
 
 typedef enum{PREFIX,INFIX,POSTFIX} Fix;
 typedef struct Operator{
@@ -63,6 +65,7 @@ typedef struct Operator{
 //reserved chars '\0', '(', ')', ','
 //supported arities: any for PREFIX and POSTFIX, 2 for INFIX
 //                       symbol   arity  fix     precedence   function
+/*
 const Operator sumOp  = {"+"	 ,2     ,INFIX  ,0          , sumFunc	};
 const Operator subOp  = {"-"	 ,2     ,INFIX  ,0          , subFunc	};
 const Operator multOp = {"*"	 ,2     ,INFIX  ,1          , multFunc	};
@@ -75,32 +78,11 @@ const Operator trisumOp = {"trisum"	 ,3     ,PREFIX ,2          , trisumFunc	};
 
 const Operator *operators[] = {&sumOp,&subOp,&multOp,&divOp,&sqrtOp,&powOp,&zeroOp,&oneOp,&trisumOp};
 int NUMofOPERATORS = sizeof(operators) / sizeof(Operator*);
+*/
 
-int isOperatorChar(char c){ //could be implemented as table, blah blah blah
-	for (int i=0;i<NUMofOPERATORS;i++){
-		for (int j=0;operators[i]->symbol[j]!='\0';j++){
-			if (c==operators[i]->symbol[j]) return 1;
-		}
-	}
-	return 0;
-}
+//int isOperatorChar(char c);
 
-void print_avalaible_Operators(){
-	printf("Available operations:\n");
-	for (int i=0;i<NUMofOPERATORS;i++){
-		printf(" Symbol: \"\033[36m%s\033[0m\", Arity: \033[36m%d\033[0m, Fix: \033[36m%s\033[0m, Precedence: \033[36m%d\033[0m\n"
-				,operators[i]->symbol
-				,operators[i]->arity
-				,operators[i]->fix==PREFIX?"PREFIX":(
-						operators[i]->fix==INFIX?"INFIX":(
-							operators[i]->fix==POSTFIX?"POSTFIX":"ERROR"
-						)
-					)
-				,operators[i]->precedence
-			);
-	}
-	return;
-}
+//void print_availableOperators();
 
 //the define below is at the top of the file since it is needed for the operator functions
 //#define OPERAND_VALUE_TYPE float
@@ -108,6 +90,7 @@ typedef struct Operand{
 	OPERAND_VALUE_TYPE value;
 } Operand;
 
+/*
 Operand *alloc_Operand(OPERAND_VALUE_TYPE value){
 	Operand *o = malloc(sizeof(Operand));
 	//if (!o) ...
@@ -164,13 +147,16 @@ void print_Operand(Operand *o){
 	return;
 }
 
+*/
+
 /* IMPORTANT
 * Use at the beginning of main() to check that:
 * 	1) Operator symbols don't include one of the reserved chars '\0', '(', ')', ','
 * 	2) Operand string format doesn't include one the reserved chars '\0', '(', ')', ','
 * 	3) No char is both in an Operator symbol and in the Operand string format
 */
-int checkCompatibilityOperatorAndOperandChars(/* ExpressionContext *context */){
+/*
+int checkCompatibilityOperatorAndOperandChars(){
 
 	for (int i=0;i<NUMofOPERATORS;i++){
 		if (operators[i]->fix==INFIX && operators[i]->arity!=2){
@@ -212,8 +198,7 @@ int checkCompatibilityOperatorAndOperandChars(/* ExpressionContext *context */){
 	printf("\033[32mCORRECT\033[0m Operator symbols and Operand string format definitions\n");
 	return 1;
 }
-
-
+*/
 
 
 
