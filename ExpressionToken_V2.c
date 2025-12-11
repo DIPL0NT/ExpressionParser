@@ -113,7 +113,8 @@ ExpressionString create_ExpressionString(char* str){
 }
 
 /*Symbol recognition decision tree*/
-typedef struct SymbolTreeNode{
+typedef 
+struct SymbolTreeNode{
     char c;
     const Operator *op;
     int branchCount;
@@ -318,92 +319,6 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *t
 
     return tok;
 }
-
-typedef struct{
-	ExpressionToken *array;
-	int capacity;
-	int count;
-	int index;
-} ExpressionToken_Vector;
-
-ExpressionToken_Vector *create_ExpressionToken_Vector(int initialCapacity){
-	ExpressionToken_Vector *newVec = (ExpressionToken_Vector*)malloc(sizeof(ExpressionToken_Vector));
-	newVec->array = (ExpressionToken*)malloc(initialCapacity*sizeof(ExpressionToken));
-	//if (!newVec->array) ...
-	newVec->capacity = initialCapacity;
-	newVec->count = 0;
-	newVec->index = 0;
-
-	return newVec;
-}
-
-void free_ExpressionToken_Vector(ExpressionToken_Vector *vec){
-	//if (!vec->array) ...
-	//if (vec->count>vec->size) ...
-
-	for(int i=0;i<vec->count;i++){
-		/*
-		TODO:
-		decide where to release the tokens, here or in free_ExpressionTreeNode ?
-		*/
-		//release_ExpressionToken(vec->array[i]);
-	}
-
-	free(vec->array);
-	free(vec);
-	return;
-}
-
-void addTo_ExpressionToken_Vector(ExpressionToken_Vector *vec,ExpressionToken tok){
-	//if (!vec) ...
-	if (vec->count==vec->capacity){
-		ExpressionToken *newArray = (ExpressionToken*)malloc(vec->capacity*2*sizeof(ExpressionToken)); //magic number
-		for (int i=0;i<vec->count;i++){
-			newArray[i] = vec->array[i];
-		}
-		free(vec->array);
-		vec->array = newArray;
-		vec->capacity *= 2; //magic number
-	}
-	
-	vec->array[vec->count] = tok;
-	vec->count++;
-	return;
-}
-
-ExpressionToken_Vector *create_ExpressionToken_Vector_from_ExpressionString(SymbolTreeNode *tree,ExpressionString *es){
-	ExpressionToken_Vector *newVec = create_ExpressionToken_Vector(10); //magic number
-	//if (!newVec) ...
-
-	do {
-		addTo_ExpressionToken_Vector(newVec,get_next_ExpressionToken_from_ExpressionString(tree,es));
-	} while (newVec->array[newVec->count-1].type!=NULLTERM);
-	/*
-	if (newVec->array[newVec->count].type!=NULLTERM){
-		printf("ERROR while creating token vector: the last token is not a NULLTERM\n");
-		free_ExpressionToken_Vector(newVec);
-		return NULL;
-	}
-	*/
-
-	return newVec;
-}
-
-ExpressionToken get_next_ExpressionToken_from_ExpressionToken_Vector(ExpressionToken_Vector *vec){
-	if (vec->count==0){
-		//printf("Ciao\n");
-		return (ExpressionToken){NULLTERM,NULL};
-	}
-	if (vec->index >= vec->count){
-		//...
-		//printf("MIAO\n");
-		return (ExpressionToken){NULLTERM,NULL};
-	}
-
-	return vec->array[vec->index++];
-}
-
-
 
 
 
