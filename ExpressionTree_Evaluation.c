@@ -57,13 +57,17 @@ OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
 	result = alloc_OperandVec(tree->args.count);
 	int i = 0;
 	ExpressionTreeNode_ListNode *cur = tree->args.head;
+    OperandVec *subRes = NULL;
 	for (int j=0;j<tree->args.count;j++){
+        subRes = NULL;
 		if (cur->treeNode->type==OPERAND_NODE){
 			result->values[i++] = ((Operand*)cur->treeNode->token.data)->value ;
 		}
 		else if (cur->treeNode->type==OPERATOR_NODE){
             //maybe rewrite with combineVecs
-			result->values[i++] = evaluate_ExpressionTree(cur->treeNode)->values[0] ; //remember that functions must always return exactely 1 value
+            subRes = evaluate_ExpressionTree(cur->treeNode); //remember that functions must always return exactely 1 value
+			result->values[i++] = subRes->values[0] ; 
+            free_OperandVec(subRes);
 		}
 		else if (cur->treeNode->type==LIST_NODE){ //should be the only other case
 			result->values = (OPERAND_VALUE_TYPE*)realloc(result->values,(result->count+cur->treeNode->args.count)*sizeof(OPERAND_VALUE_TYPE));
@@ -72,7 +76,9 @@ OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
 			ExpressionTreeNode_ListNode *cur2 = cur->treeNode->args.head ;
 			for (int k=0;k<cur->treeNode->args.count;k++){
                 //maybe rewrite with combineVecs
-				result->values[i++] = evaluate_ExpressionTree(cur2->treeNode)->values[0] ; //remember that functions must always return exactely 1 value
+                subRes = evaluate_ExpressionTree(cur2->treeNode); //remember that functions must always return exactely 1 value
+				result->values[i++] = subRes->values[0] ;
+                free_OperandVec(subRes);
 				cur2 = cur2->next;
 			}
 		}

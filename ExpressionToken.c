@@ -16,7 +16,7 @@ void release_ExpressionToken(ExpressionToken tok){
 
 void print_ExpressionToken(ExpressionToken tok){
 	if (tok.type==NULLTERM){
-		printf("\0");
+		printf("\\0");
 		return;
 	}
 	if (tok.type==OPENPAR){
@@ -321,7 +321,11 @@ void free_ExpressionToken_Vector(ExpressionToken_Vector *vec){
 	//if (vec->count>vec->size) ...
 
 	for(int i=0;i<vec->count;i++){
-		release_ExpressionToken(vec->array[i]);
+		/*
+		TODO:
+		decide where to release the tokens, here or in free_ExpressionTreeNode ?
+		*/
+		//release_ExpressionToken(vec->array[i]);
 	}
 
 	free(vec->array);
@@ -377,6 +381,7 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionToken_Vector(ExpressionT
 
 	return vec->array[vec->index++];
 }
+
 
 
 

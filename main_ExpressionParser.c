@@ -44,7 +44,8 @@ void runTests(){
 		}
 		
 		free(es.str);
-		free(tokenVec->array); //free_ExpressionToken_Vector(tokenVec);
+		//free(tokenVec->array);
+		free_ExpressionToken_Vector(tokenVec);
 		if (tree) free_ExpressionTreeNode(tree);
 		if (resVec) free_OperandVec(resVec);
 	}
@@ -96,7 +97,8 @@ int main(){
 	es.index = 0;
 	printf("\n");
 	
-	ExpressionToken_Vector *tokenVec = create_ExpressionToken_Vector_from_ExpressionString(&es);
+	ExpressionToken_Vector *tokenVec = NULL;
+	tokenVec = create_ExpressionToken_Vector_from_ExpressionString(&es);
 	printf("Token Vector: ");
 	for (int i=0;i<tokenVec->count;i++){
 		print_ExpressionToken(tokenVec->array[i]);
@@ -109,7 +111,8 @@ int main(){
 	print_ExpressionTree(tree);
 	printf("\n");
 	/*Evaluation*/
-	OperandVec *resVec = evaluate_ExpressionTree(tree);
+	OperandVec *resVec = NULL;
+	resVec = evaluate_ExpressionTree(tree);
 	if (resVec){
 		float res = resVec->values[0] ;
 		printf("Result = %f\n",res);
@@ -118,7 +121,16 @@ int main(){
 		//
 	}
 	
+	/*CleanUp*/
+	free(es.str);
+	if (tokenVec) free_ExpressionToken_Vector(tokenVec);
+	if (resVec) free_OperandVec(resVec);
+	if (tree) free_ExpressionTreeNode(tree);
+	
 
 	return 0;
 }
+
+
+
 

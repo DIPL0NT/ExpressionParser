@@ -88,7 +88,7 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
             }
 
             if (currentNode->args.count==0){
-                printf("\033[31mERROR\033[0m while parsing token number %d (comma following empty expression)\n");
+                printf("\033[31mERROR\033[0m while parsing token number %d (comma following empty expression)\n",vec->index-1);
                 error = 4;
                 return error;
             }
