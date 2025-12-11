@@ -110,7 +110,7 @@ OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
 
 
 int terminal_colors[] = {31,32,33,35,36};
-int terminal_colors_count = 5;
+int terminal_colors_count = sizeof(terminal_colors)/sizeof(int);
 unsigned int terminal_colors_index = 0;
 
 void print_ExpressionTree(ExpressionTreeNode *tree){
@@ -193,7 +193,6 @@ void print_ExpressionTree(ExpressionTreeNode *tree){
 
     return;
 }
-
 
 
 

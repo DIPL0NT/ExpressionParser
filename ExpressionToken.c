@@ -16,7 +16,7 @@ void release_ExpressionToken(ExpressionToken tok){
 
 void print_ExpressionToken(ExpressionToken tok){
 	if (tok.type==NULLTERM){
-		printf("\\0");
+		printf("\033[31m\\0\033[0m");
 		return;
 	}
 	if (tok.type==OPENPAR){

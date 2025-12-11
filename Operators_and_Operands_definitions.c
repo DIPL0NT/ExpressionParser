@@ -170,7 +170,7 @@ void print_Operand(Operand *o){
 * 	2) Operand string format doesn't include one the reserved chars '\0', '(', ')', ','
 * 	3) No char is both in an Operator symbol and in the Operand string format
 */
-int checkCompatibilityOperatorAndOperandChars(){
+int checkCompatibilityOperatorAndOperandChars(/* ExpressionContext *context */){
 
 	for (int i=0;i<NUMofOPERATORS;i++){
 		if (operators[i]->fix==INFIX && operators[i]->arity!=2){

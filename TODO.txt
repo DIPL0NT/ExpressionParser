@@ -17,3 +17,17 @@ TODO:
 
 *   TO implement evaluation of a tree to a list
 
+*   TO decide where to release the tokens (in free_TokenVec or in free_ExpressionTree ?)
+
+*   TO implement ExpressionContext (contains operators array and pointers to funcs:
+                                        isOperatorChar (maybe not needed with the symbol tree implementation)
+                                        alloc_Operand
+                                        isOperandChar (maybe not needed with the symbol tree implementation)
+                                        parseOperandStringFormatToVoidPtr
+                                        release_OperandValue
+                                        free_Operand
+                                        print_OperandValue
+                                        print_Operand
+                                   )
+
+
