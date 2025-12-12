@@ -5,27 +5,12 @@ typedef struct ExpressionTestCase{
 	char *output;
 } ExpressionTestCase;
 
-void runExpressionTests(){
+void runExpressionTests(ExpressionTestCase *tests,int testsCount){
 	
-	ExpressionTestCase tests[] ={
-		{"11"						,"11.000000"},
-		{"2+2"						,"4.000000"},
-		{"( 0.1/4^.2 +5.7)"			,"5.775785"},
-		{"sqrt( 0.1/4^.2 +5.7)"		,"2.403286"},
-		{"5+ sqrt4"					,"7.000000"},
-		{"5+ sqrt(4)"				,"7.000000"},
-		{" 4 + 3^2"					,"13.000000"},
-		{"sqrt (0.1) /4^.2 +5.7"	,"5.939656"},
-		{"sqrt 0.1 /4^.2 +5.7"		,"5.939656"},
-		{"sqrt( 0.1^4/.2 +5.7)"		,"2.387572"},
-		{"trisum 1(2, 3)"			,"6.000000"},
-		{"Z + I + I"				,"2.000000"},
-		{"Z+I+I"					,"2.000000"}
-	};
-	int n = sizeof(tests) / sizeof(ExpressionTestCase) ;
+	
 
 	int fail = 0;
-	for (int i=0;i<n;i++){
+	for (int i=0;i<testsCount;i++){
 		printf("\n");
 		char *input = tests[i].input;
 		printf("\033[7m%s\033[0m\n",input);
@@ -35,7 +20,7 @@ void runExpressionTests(){
 		ExpressionTreeNode *tree = create_ExpressionTree_from_ExpressionToken_Vector(tokenVec);
 		print_ExpressionTree(tree);
 		OperandVec *resVec = evaluate_ExpressionTree(tree);
-		OPERAND_VALUE_TYPE res = 0.0; //default value
+		OPERAND_VALUE_TYPE res; //default value
 		if (resVec){
 			res = resVec->values[0] ;
 			char out[256]; out[255] = 0;
@@ -62,10 +47,10 @@ void runExpressionTests(){
 	}
 
 	if (!fail){
-		printf("\n\033[32mPASSED\033[0m all %d tests\n\n",n);
+		printf("\n\033[32mPASSED\033[0m all %d tests\n\n",testsCount);
 	}
 	else{
-		printf("\n\033[31mFAILED\033[0m %d tests out of %d (%.2f%%)\n\n",fail,n,100.0*((float)fail)/((float)n));
+		printf("\n\033[31mFAILED\033[0m %d tests out of %d (%.2f%%)\n\n",fail,testsCount,100.0*((float)fail)/((float)testsCount));
 	}
 	
 	return;

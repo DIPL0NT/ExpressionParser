@@ -1,4 +1,4 @@
-#include "ExpressionParser.c"
+#include "../../ExpressionParser.c"
 
 
 
@@ -22,7 +22,24 @@ int main(){
 	}
 
 	print_avalaible_Operators();
-	runExpressionTests();
+
+	ExpressionTestCase tests[] ={
+		{"11"						,"11.000000"},
+		{"2+2"						,"4.000000"},
+		{"( 0.1/4^.2 +5.7)"			,"5.775785"},
+		{"sqrt( 0.1/4^.2 +5.7)"		,"2.403286"},
+		{"5+ sqrt4"					,"7.000000"},
+		{"5+ sqrt(4)"				,"7.000000"},
+		{" 4 + 3^2"					,"13.000000"},
+		{"sqrt (0.1) /4^.2 +5.7"	,"5.939656"},
+		{"sqrt 0.1 /4^.2 +5.7"		,"5.939656"},
+		{"sqrt( 0.1^4/.2 +5.7)"		,"2.387572"},
+		{"trisum 1(2, 3)"			,"6.000000"},
+		{"Z + I + I"				,"2.000000"},
+		{"Z+I+I"					,"2.000000"}
+	};
+	int n = sizeof(tests) / sizeof(ExpressionTestCase) ;
+	runExpressionTests(tests,n);
 
 	/*
 	char input[] = "11";
