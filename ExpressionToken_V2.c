@@ -150,9 +150,11 @@ int addSymbolTo_SymbolTree(SymbolTreeNode *tree,const Operator *op){
     int len = strlen(op->symbol);
     int i,j;
 
-    int lo = 0; int hi = tree->branchCount;
+    int lo; int hi;
     int mid;
     for (i=0;i<len;i++){
+		lo = 0;
+		hi = tree->branchCount;
         while (lo!=hi){ //search symbol char in the branches
             if (tree->branches[lo]->c==op->symbol[i]){
                 if (i==len-1){
@@ -163,7 +165,7 @@ int addSymbolTo_SymbolTree(SymbolTreeNode *tree,const Operator *op){
                 tree = tree->branches[lo];
                 break;
             }
-            mid = lo+hi /2;
+            mid = (lo+hi) /2;
             if (tree->branches[mid]->c==op->symbol[i]){
                 if (i==len-1){
                     printf("\033[31mERROR\033[0m two operators have been defined with the same symbol \"\033[36m%s\033[0m\"\n",op->symbol);
@@ -173,6 +175,10 @@ int addSymbolTo_SymbolTree(SymbolTreeNode *tree,const Operator *op){
                 tree = tree->branches[mid];
                 break;
             }
+			if (lo==mid){
+				hi = mid;
+				break;
+			}
             else if (tree->branches[mid]->c > op->symbol[i]){
                 hi = mid;
             }
@@ -185,7 +191,8 @@ int addSymbolTo_SymbolTree(SymbolTreeNode *tree,const Operator *op){
             tree->branches = realloc( tree->branches, (tree->branchCount+1)*sizeof(SymbolTreeNode*) );
             //if (!tree->branches) ...
             tree->branchCount++;
-            tree->branches[tree->branchCount-1] = alloc_SymbolTreeNode(op->symbol[i],op); //could fail I guess
+            tree->branches[tree->branchCount-1] = alloc_SymbolTreeNode(op->symbol[i], i==len-1 ? op : NULL );
+			//if (!tree->branches[tree->branchCount-1]) ...
             SymbolTreeNode *tmp = NULL;
             for (j=tree->branchCount-1;j>=0;j--){
                 if (j && op->symbol[i] < tree->branches[j-1]->c){
@@ -196,14 +203,14 @@ int addSymbolTo_SymbolTree(SymbolTreeNode *tree,const Operator *op){
                 else{
                     //j is the right place for the symbol char
                     tree = tree->branches[j];
-                    i++;
-                    while (i!=len){
+                    while (i!=len-1){
+						i++;
                         tree->branches = malloc(sizeof(SymbolTreeNode*));
                         tree->branchCount = 1;
-                        tree->branches[0] = alloc_SymbolTreeNode(op->symbol[i],op);
+                        tree->branches[0] = alloc_SymbolTreeNode(op->symbol[i],NULL);
                         tree = tree->branches[0];
-                        i++;
                     }
+					tree->op = op;
                     return 0;
                 }
             }
@@ -218,14 +225,45 @@ int addSymbolTo_SymbolTree(SymbolTreeNode *tree,const Operator *op){
     return -1; //should never get here
 }
 
+SymbolTreeNode *operatorsSymbolTree = NULL;
+/*
+Must be ran before everything else
+operatorsSymbolTree = create_SymbolTree();
+*/
+SymbolTreeNode *create_SymbolTree(){
+	SymbolTreeNode *newSymbolTree = alloc_SymbolTreeNode('\0',NULL);
+	//if (!newSymbolTree) ...
+	for (int i=0;i<operatorsCount;i++){
+		if ( addSymbolTo_SymbolTree(newSymbolTree,operators[i]) ){
+			printf("\033[31mERROR\033[0m while trying to add operator symbol \"\033[36m%s\033[0m\" to SymbolTree\n",operators[i]->symbol);
+			free_SymbolTreeNode(newSymbolTree);
+			return NULL;
+		}
+	}
+	return newSymbolTree;
+}
+
+int isOperatorFirstChar(char c){
+	//if (!operatorsSymbolTree) ...
+	for (int i=0;i<operatorsSymbolTree->branchCount;i++){
+		if (operatorsSymbolTree->branches[i]->c == c){
+			return 1;
+		}
+	}
+	return 0;
+}
+
 //in the symbol tree the leaf nodes are those with branchCount = 0
 ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *tree,ExpressionString *es){
     ExpressionToken tok = {NULLTERM,NULL};
 
+	printf(" getting from %s ",es->str+es->index);
+
 	char tmp = 0;
 	int i = es->index;
-	if (es->str[i]==' ') i++;
-	es->index = i;
+	if (es->str[i]==' '){
+		es->index = ++i;
+	}
 	
 	if (es->str[i]=='\0'){
 		tok.type = NULLTERM;
@@ -252,36 +290,62 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *t
 		return tok;
 	}
 
+	while (es->str[i]!=' ' && !isReservedChar(es->str[i]) && !isOperatorFirstChar(es->str[i])) i++ ;
+	if (i!=es->index){
+		tmp = es->str[i];
+		es->str[i] = '\0';
+		Operand *operand = parseOperandStringFormatToVoidPtr(es->str+es->index);
+		if (!operand){
+			printf("Parsing error in expression string: %s (unable to identify token in position %d: %s)\n",es->str,es->index,es->str+es->index);
+			tok.type = NULLTERM;
+			tok.data = NULL;
+			es->str[i] = tmp;
+			es->index = i;
+			return tok;
+		}
+		tok.type = OPERAND;
+		tok.data = (void*) operand;
+		printf(" got operand %s ",es->str+es->index);
+		es->str[i] = tmp;
+		es->index = i;
+		return tok;
+	}
+
     //the char in the root of the tree is not to be considered
+	int lo; int hi;
+	int mid;
     for ( ; es->str[i]!=' ' && !isReservedChar(es->str[i]) ; i++){
 
-        int lo = 0; int hi = tree->branchCount;
-        int mid;
-
+        lo = 0;
+		hi = tree->branchCount;
         while (lo!=hi){ //search es char in the branches
             if (tree->branches[lo]->c == es->str[i]){
                 tree = tree->branches[lo];
-                if (tree->branchCount==0){
+                if (tree->op!=NULL){
                     tok.type = OPERATOR;
                     tok.data = (void*) tree->op;
                     es->index = i+1;
-
+					printf(" got operator %s ",tree->op->symbol);
                     return tok;
                 }
                 break;
             }
-            mid = lo+hi /2;
+            mid = (lo+hi) /2;
             if (tree->branches[mid]->c == es->str[i]){
                 tree = tree->branches[mid];
-                if (tree->branchCount==0){
+                if (tree->op!=NULL){
                     tok.type = OPERATOR;
                     tok.data = (void*) tree->op;
                     es->index = i+1;
-
+					printf(" got operator %s ",tree->op->symbol);
                     return tok;
                 }
                 break;
             }
+			if (lo==mid){
+				hi = mid;
+				break;
+			}
             else if (tree->branches[mid]->c > es->str[i]){
                 hi = mid;
             }
@@ -299,8 +363,8 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *t
     }
     
     //it's an Operand
-    while (es->str[i]!=' ' && !isReservedChar(es->str[i])) i++ ;
-    char tmp = es->str[i];
+    while (es->str[i]!=' ' && !isReservedChar(es->str[i]) && !isOperatorFirstChar(es->str[i])) i++ ;
+    tmp = es->str[i];
     es->str[i] = '\0';
     Operand *operand = parseOperandStringFormatToVoidPtr(es->str+es->index);
     if (!operand){
@@ -313,6 +377,7 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *t
     }
     tok.type = OPERAND;
     tok.data = (void*) operand;
+	printf(" got operand %s ",es->str+es->index);
     es->str[i] = tmp;
     es->index = i;
 
@@ -403,7 +468,14 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionToken_Vector(ExpressionT
 	return vec->array[vec->index++];
 }
 
-
+void print_ExpressionTokenVector(ExpressionToken_Vector *vec){
+	for (int i=0;i<vec->count;i++){
+		print_ExpressionToken(vec->array[i]);
+		printf("_");
+	}
+	printf("\n");
+	return;
+}
 
 
 

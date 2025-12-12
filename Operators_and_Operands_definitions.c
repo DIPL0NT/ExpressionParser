@@ -74,10 +74,10 @@ const Operator oneOp  = {"I"	 ,0     ,PREFIX ,3          , oneFunc	};
 const Operator trisumOp = {"trisum"	 ,3     ,PREFIX ,2          , trisumFunc	};
 
 const Operator *operators[] = {&sumOp,&subOp,&multOp,&divOp,&sqrtOp,&powOp,&zeroOp,&oneOp,&trisumOp};
-int NUMofOPERATORS = sizeof(operators) / sizeof(Operator*);
+int operatorsCount = sizeof(operators) / sizeof(Operator*);
 
 int isOperatorChar(char c){ //could be implemented as table, blah blah blah
-	for (int i=0;i<NUMofOPERATORS;i++){
+	for (int i=0;i<operatorsCount;i++){
 		for (int j=0;operators[i]->symbol[j]!='\0';j++){
 			if (c==operators[i]->symbol[j]) return 1;
 		}
@@ -87,7 +87,7 @@ int isOperatorChar(char c){ //could be implemented as table, blah blah blah
 
 void print_avalaible_Operators(){
 	printf("Available operations:\n");
-	for (int i=0;i<NUMofOPERATORS;i++){
+	for (int i=0;i<operatorsCount;i++){
 		printf(" Symbol: \"\033[36m%s\033[0m\", Arity: \033[36m%d\033[0m, Fix: \033[36m%s\033[0m, Precedence: \033[36m%d\033[0m\n"
 				,operators[i]->symbol
 				,operators[i]->arity
@@ -172,13 +172,13 @@ void print_Operand(Operand *o){
 */
 int checkCompatibilityOperatorAndOperandChars(/* ExpressionContext *context */){
 
-	for (int i=0;i<NUMofOPERATORS;i++){
+	for (int i=0;i<operatorsCount;i++){
 		if (operators[i]->fix==INFIX && operators[i]->arity!=2){
 			printf("\033[31mERROR\033[0m in Operator \"\033[36m%s\033[0m\"'s definition: an INFIX operator must have arity=2\n",operators[i]->symbol);
 			return 0;
 		}
 
-		for (int j=i+1;j<NUMofOPERATORS;j++){
+		for (int j=i+1;j<operatorsCount;j++){
 			if (!strcmp(operators[i]->symbol,operators[j]->symbol)){
 				printf("\033[31mERROR\033[0m in Operator symbols definition: operators number %d and %d have the same symbol \"\033[36m%s\033[0m\"\n",i,j,operators[i]->symbol);
 				return 0;

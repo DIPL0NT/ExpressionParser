@@ -177,7 +177,7 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString_NoOverlappingChar
 
 	char tmp = es->str[i];
 	es->str[i] = '\0';
-	for (int j=0;j<NUMofOPERATORS;j++){
+	for (int j=0;j<operatorsCount;j++){
 		if (!strcmp(es->str+es->index,operators[j]->symbol)){
 			tok.type = OPERATOR;
 			tok.data = (void*) operators[j];
@@ -262,7 +262,7 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString/*_OperatorAndOper
 	while (!isReservedChar(es->str[i]) && !isWhiteSpace(es->str[i]) && !isOperandChar(es->str[i])) i++;
 	tmp = es->str[i];
 	es->str[i] = '\0';
-	for (int j=0;j<NUMofOPERATORS;j++){ //check if the token is an operator symbol
+	for (int j=0;j<operatorsCount;j++){ //check if the token is an operator symbol
 		if (!strcmp(es->str+es->index,operators[j]->symbol)){
 			tok.type = OPERATOR;
 			tok.data = (void*) operators[j];

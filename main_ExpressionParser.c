@@ -7,6 +7,15 @@ int main(){
 	if (!checkCompatibilityOperatorAndOperandChars()){
 		return 1;
 	}
+	else{
+		operatorsSymbolTree = create_SymbolTree();
+		if (!operatorsSymbolTree){
+			return 2;
+		}
+		else{
+			printf("\033[32mCORRECT\033[0m created operatorsSymbolTree\n");
+		}
+	}
 
 	runTests();
 
@@ -24,7 +33,7 @@ int main(){
 	char input[] = "trisum 1(2, 3)"; //Result = 6
 	*/
 	
-	char input[] = "2+sqrt(2)"; 
+	char input[] = "2+sqrt(4)"; 
 	//char input[] = "Z+I+I"; //Result = 2
 
 	/*Input acquisition*/
@@ -33,7 +42,7 @@ int main(){
 	printf("ExpressionString: %s\n",es.str);
 	ExpressionToken tok = {NULLTERM,NULL};
 	printf("Parsed tokens: ");
-	while ( (tok = get_next_ExpressionToken_from_ExpressionString(&es)).type!=NULLTERM ){
+	while ( (tok = get_next_ExpressionToken_from_ExpressionString(operatorsSymbolTree,&es)).type!=NULLTERM ){
 		print_ExpressionToken(tok);
 		printf("_");
 	}
@@ -41,7 +50,7 @@ int main(){
 	printf("\n");
 	
 	ExpressionToken_Vector *tokenVec = NULL;
-	tokenVec = create_ExpressionToken_Vector_from_ExpressionString(&es);
+	tokenVec = create_ExpressionToken_Vector_from_ExpressionString(operatorsSymbolTree,&es);
 	printf("Token Vector: ");
 	for (int i=0;i<tokenVec->count;i++){
 		print_ExpressionToken(tokenVec->array[i]);
@@ -73,7 +82,6 @@ int main(){
 
 	return 0;
 }
-
 
 
 
