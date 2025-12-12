@@ -6,8 +6,6 @@ typedef struct ExpressionTestCase{
 } ExpressionTestCase;
 
 void runExpressionTests(ExpressionTestCase *tests,int testsCount){
-	
-	
 
 	int fail = 0;
 	for (int i=0;i<testsCount;i++){

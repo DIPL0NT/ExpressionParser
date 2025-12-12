@@ -19,6 +19,8 @@ checkOperatorAndOperandCharsDefinitions(); //to check there's no errors in the d
 //#define OPERAND_VALUE_TYPE fraction
 #define OPERAND_VALUE_TYPE float
 
+//uncomment or comment out the above lines depending on what you are building
+
 typedef struct Operand{
 	OPERAND_VALUE_TYPE value;
 } Operand;
