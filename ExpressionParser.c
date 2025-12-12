@@ -43,6 +43,9 @@ void runTests(){
 				fail++;
 				printf("\033[31mFAIL\033[0m test %d: expected %s but got %s\n",i,tests[i].output,out);
 			}
+			else{
+				printf(" \033[32m=\033[0m %s",tests[i].output);
+			}
 		}
 		else{
 			fail++;
@@ -66,5 +69,6 @@ void runTests(){
 	
 	return;
 }
+
 
 

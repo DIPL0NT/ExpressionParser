@@ -257,8 +257,6 @@ int isOperatorFirstChar(char c){
 ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *tree,ExpressionString *es){
     ExpressionToken tok = {NULLTERM,NULL};
 
-	printf(" getting from %s ",es->str+es->index);
-
 	char tmp = 0;
 	int i = es->index;
 	if (es->str[i]==' '){
@@ -305,7 +303,6 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *t
 		}
 		tok.type = OPERAND;
 		tok.data = (void*) operand;
-		printf(" got operand %s ",es->str+es->index);
 		es->str[i] = tmp;
 		es->index = i;
 		return tok;
@@ -325,7 +322,6 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *t
                     tok.type = OPERATOR;
                     tok.data = (void*) tree->op;
                     es->index = i+1;
-					printf(" got operator %s ",tree->op->symbol);
                     return tok;
                 }
                 break;
@@ -337,7 +333,6 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *t
                     tok.type = OPERATOR;
                     tok.data = (void*) tree->op;
                     es->index = i+1;
-					printf(" got operator %s ",tree->op->symbol);
                     return tok;
                 }
                 break;
@@ -377,7 +372,6 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *t
     }
     tok.type = OPERAND;
     tok.data = (void*) operand;
-	printf(" got operand %s ",es->str+es->index);
     es->str[i] = tmp;
     es->index = i;
 
@@ -476,6 +470,5 @@ void print_ExpressionTokenVector(ExpressionToken_Vector *vec){
 	printf("\n");
 	return;
 }
-
 
 
