@@ -2,8 +2,8 @@ Quick implementation of algebraic expression parsing and evaluation with custom 
 
 Maybe look at examples first (build scripts or prebuilt binaries included).
 ```bash
-/examples/float
-/examples/fractions
+/examples/float       # builds right away
+/examples/fractions   # need to go in Operators_and_Operands_definition.h, uncomment lines 18,19 and comment out line 20 before building
 ```
 
 ### Important! :
