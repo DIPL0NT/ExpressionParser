@@ -1,3 +1,5 @@
+Quick implementation of algebraic expression parsing and evaluation with custom defined Operators and Operands
+
 Maybe look at examples first (build scripts or prebuilt binaries included).
 ```bash
 /examples/float
