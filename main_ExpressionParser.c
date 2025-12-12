@@ -12,16 +12,17 @@ int main(){
 		return 1;
 	}
 	else{
+		operatorsSymbolTree = NULL;
 		operatorsSymbolTree = create_SymbolTree();
 		if (!operatorsSymbolTree){
 			return 2;
 		}
 		else{
-			printf("\033[32mCORRECT\033[0m created operatorsSymbolTree\n");
+			printf("\033[32mCORRECT\033[0m creation of operatorsSymbolTree\n");
 		}
 	}
 
-	runTests();
+	runExpressionTests();
 
 	//print_avalaible_Operators();
 
@@ -91,6 +92,8 @@ int main(){
 
 	return 0;
 }
+
+
 
 
 

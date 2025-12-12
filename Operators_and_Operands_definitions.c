@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include "Operators_and_Operands_definitions.h"
 
 int isWhiteSpace(char c){
 	if (c==' '||c=='\t'||c=='\n'||c=='\r') return 1;
@@ -13,70 +10,9 @@ int isReservedChar(char c){
 	return 0;
 }
 
-#define OPERAND_VALUE_TYPE float
+//#define OPERAND_VALUE_TYPE float
 
-OPERAND_VALUE_TYPE sumFunc(OPERAND_VALUE_TYPE args[2]){
-	return args[0]+args[1];
-}
-
-float subFunc(OPERAND_VALUE_TYPE args[2]){
-	return args[0]-args[1];
-}
-
-float multFunc(OPERAND_VALUE_TYPE args[2]){
-	return args[0]*args[1];
-}
-
-float divFunc(OPERAND_VALUE_TYPE args[2]){
-	return args[0]/args[1];
-}
-
-float sqrtFunc(OPERAND_VALUE_TYPE args[1]){
-	return sqrt(args[0]);
-}
-
-float powFunc(OPERAND_VALUE_TYPE args[2]){
-	return pow(args[0],args[1]);
-}
-
-float zeroFunc(){
-	return 0.0;
-}
-
-float oneFunc(){
-	return 1.0;
-}
-
-float trisumFunc(OPERAND_VALUE_TYPE args[3]){
-	return args[0]+args[1]+args[2];
-}
-
-typedef enum{PREFIX,INFIX,POSTFIX} Fix;
-typedef struct Operator{
-	const char* symbol;
-	const int arity; //0, 1, 2
-	const Fix fix; //0: prefix, 1: infix
-	const int precedence;
-	OPERAND_VALUE_TYPE (*function)(OPERAND_VALUE_TYPE[]); //each function will expect an args array size according to the operator's arity
-} Operator;
-
-//reserved chars '\0', '(', ')', ','
-//supported arities: any for PREFIX and POSTFIX, 2 for INFIX
-//                       symbol   arity  fix     precedence   function
-const Operator sumOp  = {"+"	 ,2     ,INFIX  ,0          , sumFunc	};
-const Operator subOp  = {"-"	 ,2     ,INFIX  ,0          , subFunc	};
-const Operator multOp = {"*"	 ,2     ,INFIX  ,1          , multFunc	};
-const Operator divOp  = {"/"     ,2     ,INFIX  ,1          , divFunc	};
-const Operator sqrtOp = {"sqrt"	 ,1     ,PREFIX ,2          , sqrtFunc	};
-const Operator powOp  = {"^"	 ,2     ,INFIX  ,2          , powFunc	};
-const Operator zeroOp = {"Z"	 ,0     ,PREFIX ,3          , zeroFunc	};
-const Operator oneOp  = {"I"	 ,0     ,PREFIX ,3          , oneFunc	};
-const Operator trisumOp = {"trisum"	 ,3     ,PREFIX ,2          , trisumFunc	};
-
-const Operator *operators[] = {&sumOp,&subOp,&multOp,&divOp,&sqrtOp,&powOp,&zeroOp,&oneOp,&trisumOp};
-int operatorsCount = sizeof(operators) / sizeof(Operator*);
-
-int isOperatorChar(char c){ //could be implemented as table, blah blah blah
+int isOperatorChar(char c){ //could use the symbol tree or a table, blah blah blah
 	for (int i=0;i<operatorsCount;i++){
 		for (int j=0;operators[i]->symbol[j]!='\0';j++){
 			if (c==operators[i]->symbol[j]) return 1;
@@ -102,12 +38,6 @@ void print_avalaible_Operators(){
 	return;
 }
 
-//the define below is at the top of the file since it is needed for the operator functions
-//#define OPERAND_VALUE_TYPE float
-typedef struct Operand{
-	OPERAND_VALUE_TYPE value;
-} Operand;
-
 Operand *alloc_Operand(OPERAND_VALUE_TYPE value){
 	Operand *o = malloc(sizeof(Operand));
 	//if (!o) ...
@@ -115,43 +45,9 @@ Operand *alloc_Operand(OPERAND_VALUE_TYPE value){
 	return o;
 }
 
-//reserverd chars: '\0', '(', ')', ',' and all the operators chars
-int isOperandChar(char c){
-	//IF I EVER IMPLEMENT SUPPORT FOR OPERATORS AND OPERANDS THAT SHARE CHARS (overlap)
-	//THEN THIS FUNCTION SHOULD RETURN TRUE ONLY IF c ISN'T ALSO AN OPERATOR CHAR
-
-	//for floats
-	if (c=='.'|| c>='0'&&c<='9' ) return 1;
-	return 0;
-}
-
-//takes as input the string format of an operand and returns pointer to newly allocated operand
-//in case of error returns NULL
-//eg if operands are float the input will be "%f" and sscanf() will be used to parse
-void *parseOperandStringFormatToVoidPtr(char *s){
-	//for floats
-	OPERAND_VALUE_TYPE f;
-	if (0==sscanf(s,"%f",&f)){
-		printf("\033[31mERROR\033[0m in parseOperandStringFormatToVoidPtr() : couldn't parse %s\n",s);
-		return NULL;
-	}
-	return (void*) alloc_Operand(f);
-}
-
-void release_OperandValue(OPERAND_VALUE_TYPE value){
-	//for floats do nothing
-	return;
-}
-
 void free_Operand(Operand *operand){
 	release_OperandValue(operand->value);
 	free(operand);
-	return;
-}
-
-void print_OperandValue(OPERAND_VALUE_TYPE val){
-	//for floats
-	printf("%f",val);
 	return;
 }
 
@@ -165,10 +61,13 @@ void print_Operand(Operand *o){
 }
 
 /* IMPORTANT
-* Use at the beginning of main() to check that:
+* Use at the beginning of main():
+*	checkCompatibilityOperatorAndOperandChars();
+* to check that:
 * 	1) Operator symbols don't include one of the reserved chars '\0', '(', ')', ','
 * 	2) Operand string format doesn't include one the reserved chars '\0', '(', ')', ','
 * 	3) No char is both in an Operator symbol and in the Operand string format
+*   4) No two Operators have the same symbol (gets checked in create_SymbolTree too)
 */
 int checkCompatibilityOperatorAndOperandChars(/* ExpressionContext *context */){
 
@@ -212,6 +111,12 @@ int checkCompatibilityOperatorAndOperandChars(/* ExpressionContext *context */){
 	printf("\033[32mCORRECT\033[0m Operator symbols and Operand string format definitions\n");
 	return 1;
 }
+
+
+
+
+
+
 
 
 

@@ -1,3 +1,21 @@
+on linux:
+    gcc main_ExpressionParser.c -g3 -lm
+    algrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./a.out
+
+/* IMPORTANT
+* Use at the beginning of main():
+*	checkCompatibilityOperatorAndOperandChars();
+* to check that:
+* 	1) Operator symbols don't include one of the reserved chars '\0', '(', ')', ','
+* 	2) Operand string format doesn't include one the reserved chars '\0', '(', ')', ','
+* 	3) No char is both in an Operator symbol and in the Operand string format
+*   4) No two Operators have the same symbol (gets checked in create_SymbolTree too)
+*/
+/* IMPORTANT
+* Use at the beginning of main():
+*	operatorsSymbolTree = create_SymbolTree();
+*/
+
 TODO:
 	
 *   TO solve problem that two operators written without space or parenthesis between them don't get recognized

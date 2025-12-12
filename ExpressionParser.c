@@ -1,13 +1,13 @@
 #include "ExpressionTree_Evaluation.c"
 
-typedef struct testCase{
+typedef struct ExpressionTestCase{
 	char *input;
 	char *output;
-} testCase;
+} ExpressionTestCase;
 
-void runTests(){
+void runExpressionTests(){
 	
-	testCase tests[] ={
+	ExpressionTestCase tests[] ={
 		{"11"						,"11.000000"},
 		{"2+2"						,"4.000000"},
 		{"( 0.1/4^.2 +5.7)"			,"5.775785"},
@@ -22,13 +22,13 @@ void runTests(){
 		{"Z + I + I"				,"2.000000"},
 		{"Z+I+I"					,"2.000000"}
 	};
-	int n = sizeof(tests) / sizeof(testCase) ;
+	int n = sizeof(tests) / sizeof(ExpressionTestCase) ;
 
 	int fail = 0;
 	for (int i=0;i<n;i++){
 		printf("\n");
 		char *input = tests[i].input;
-		printf("%s\n",input);
+		printf("\033[7m%s\033[0m\n",input);
 		ExpressionString es = create_ExpressionString(input);
 		ExpressionToken_Vector *tokenVec = create_ExpressionToken_Vector_from_ExpressionString(operatorsSymbolTree,&es);
 		print_ExpressionTokenVector(tokenVec);
@@ -45,7 +45,7 @@ void runTests(){
 				printf("\033[31mFAIL\033[0m test %d: expected %s but got %s\n",i,tests[i].output,out);
 			}
 			else{
-				printf(" \033[32m=\033[0m %s",tests[i].output);
+				printf("\033[7m = %s\033[0m",tests[i].output);
 			}
 		}
 		else{
@@ -62,10 +62,10 @@ void runTests(){
 	}
 
 	if (!fail){
-		printf("\033[32mPASSED\033[0m all %d tests\n",n);
+		printf("\n\033[32mPASSED\033[0m all %d tests\n\n",n);
 	}
 	else{
-		printf("\033[31mFAILED\033[0m %d tests out of %d (%.2f%%)\n",fail,n,100.0*((float)fail)/((float)n));
+		printf("\n\033[31mFAILED\033[0m %d tests out of %d (%.2f%%)\n\n",fail,n,100.0*((float)fail)/((float)n));
 	}
 	
 	return;

@@ -48,7 +48,7 @@ typedef struct ExpressionString{
 	char *str;
 } ExpressionString;
 
-//checks parenthesization and commas and strips whitespace
+//checks parenthesization and commas and condenses contiguos whitespace into a single space char
 //wraps the entire expression in parentheses for good measure
 ExpressionString create_ExpressionString(char* str){
 	ExpressionString es = {2+strlen(str),0,NULL};
@@ -112,108 +112,154 @@ ExpressionString create_ExpressionString(char* str){
 	return es;
 }
 
-/*ASSUMPTIONS: 1) es->str has been stripped of all whitespace.
-			   2) chars that are the first char of an operator symbol
-			   	  can't appear in the string formats of the operands.
-*/
-//CUSTOMIZE isOperandChar() BASED ON THE STRING FORMAT FOR THE TYPE OF VALUE OF THE OPERANDS
-//WORKS ON ASSUMPTION THAT ANY CHAR THAT ISN'T '\0', '(', ')', AND DOESN'T GET RECOGNIZED BY isWhiteSpace() AND isOperandChar() MUST BE PART OF AN OPERATOR SYMBOL
-//
-ExpressionToken get_next_ExpressionToken_from_ExpressionString_NoOverlappingChars(ExpressionString *es){
-	ExpressionToken tok = {NULLTERM,NULL};
+/*Symbol recognition decision tree*/
+/* typedef struct SymbolTreeNode{
+    char c;
+    const Operator *op;
+    int branchCount;
+    struct SymbolTreeNode **branches;
+} SymbolTreeNode; */
 
-	int i = es->index;
-	while (isWhiteSpace(es->str[i])) i++;
-	es->index = i;
-	
-	if (es->str[i]=='\0'){
-		tok.type = NULLTERM;
-		tok.data = NULL;
-		es->index = i+1;
-		return tok;
-	}
-	if (es->str[i]=='('){
-		tok.type = OPENPAR;
-		tok.data = NULL;
-		es->index = i+1;
-		return tok;
-	}
-	if (es->str[i]==')'){
-		tok.type = CLOSEPAR;
-		tok.data = NULL;
-		es->index = i+1;
-		return tok;
-	}
-	if (es->str[i]==','){
-		tok.type = COMMA;
-		tok.data = NULL;
-		es->index = i+1;
-		return tok;
-	}
-
-	while (isOperandChar(es->str[i])) i++;
-	if (i!=es->index){ //the character encountered was the beginning of a operand token
-		char tmp = es->str[i];
-		es->str[i] = '\0';
-		tok.type = OPERAND;
-		tok.data = parseOperandStringFormatToVoidPtr(es->str+es->index);
-		if (tok.data==NULL){ //the operand string format wasn't recognized
-			printf("\033[31mERROR\033[0m while parsing expression string: %s (unable to identify operand string format in position %d)\n",es->str,es->index);
-			tok.type = NULLTERM;
-		}
-		es->str[i] = tmp;
-		es->index = i;
-		return tok;
-	}
-
-	while (!isWhiteSpace(es->str[i]) && !isOperandChar(es->str[i]) &&es->str[i]!='(' &&es->str[i]!=')' &&es->str[i]!=',' &&es->str[i]!='\0') i++;
-	
-	/*
-	TODO:
-	TO solve problem that two operators written without space or parenthesis between them don't get recognized
-	eg "2+-1" doesn't get recognized as "2 + -1" because it interprets "+-" as one symbol
-	eg "Z+I" gets interpreted as one instead of "Z + I"
-	*/
-
-	char tmp = es->str[i];
-	es->str[i] = '\0';
-	for (int j=0;j<operatorsCount;j++){
-		if (!strcmp(es->str+es->index,operators[j]->symbol)){
-			tok.type = OPERATOR;
-			tok.data = (void*) operators[j];
-			es->str[i] = tmp;
-			es->index = i;
-			return tok;
-		}
-	}
-	
-	//if we get here parseOperandStringFormatToVoidPtr wasn't able to parse the token so there must be an error (either operator symbol misspelling or incorrect operand string format)
-	printf("\033[31mERROR\033[0m while parsing expression string: %s (unable to identify token in position %d)\n",es->str,es->index);
-
-	tok.type = NULLTERM;
-	tok.data = NULL;
-	return tok;
+SymbolTreeNode *alloc_SymbolTreeNode(char c,const Operator *op){
+    SymbolTreeNode *newNode = (SymbolTreeNode*)malloc(sizeof(SymbolTreeNode));
+    //if (!newNode) ...
+    newNode->c = c;
+    newNode->op = op;
+    newNode->branchCount = 0;
+    newNode->branches = NULL;
+    
+    return newNode;
 }
 
-//SHOULD THIS BE USED?
-//function made so that operators and operands can contain the same chars (overlap between operandChars and operator symbol chars)
-//the problem is that this requires that there's always a space between operands and operators
-//that way cases where there's no overlap (say the operands are numbers and the expressions look like 2+2) would be restricted (it would force 2+2 to be written as "2 + 2")
-//CURRENT IMPLEMENTATION:
-//an operand token can:
-// have all chars that are also operatorChars
-// have all chars that are isOperandChars
-// begin with operatorChar and end with isOperandChars
-//cant have operatorChar*isOperandChar*operatorChar
-//cant have isOperandChar*operatorChar
-//
-ExpressionToken get_next_ExpressionToken_from_ExpressionString/*_OperatorAndOperandsHaveOverlappingChars*/(ExpressionString *es){
-	ExpressionToken tok = {NULLTERM,NULL};
+void free_SymbolTreeNode(SymbolTreeNode *tree){
+    if (!tree) return;
+    for (int i=0;i<tree->branchCount;i++){
+        free_SymbolTreeNode(tree->branches[i]);
+    }
+	free(tree->branches);
+    free(tree);
+
+    return;
+}
+
+int addSymbolTo_SymbolTree(SymbolTreeNode *tree,const Operator *op){
+    if (!tree){
+        printf("\033[31mERROR\033[0m addSymbolTo_SymbolTree(NULL,op)\n");
+        return 1;
+    }
+
+    int len = strlen(op->symbol);
+    int i,j;
+
+    int lo; int hi;
+    int mid;
+    for (i=0;i<len;i++){
+		lo = 0;
+		hi = tree->branchCount;
+        while (lo!=hi){ //search symbol char in the branches
+            if (tree->branches[lo]->c==op->symbol[i]){
+                if (i==len-1){
+                    printf("\033[31mERROR\033[0m two operators have been defined with the same symbol \"\033[36m%s\033[0m\"\n",op->symbol);
+                    return 2;
+                }
+                //
+                tree = tree->branches[lo];
+                break;
+            }
+            mid = (lo+hi) /2;
+            if (tree->branches[mid]->c==op->symbol[i]){
+                if (i==len-1){
+                    printf("\033[31mERROR\033[0m two operators have been defined with the same symbol \"\033[36m%s\033[0m\"\n",op->symbol);
+                    return 2;
+                }
+                //
+                tree = tree->branches[mid];
+                break;
+            }
+			if (lo==mid){
+				hi = mid;
+				break;
+			}
+            else if (tree->branches[mid]->c > op->symbol[i]){
+                hi = mid;
+            }
+            else{
+                lo = mid;
+            }
+        }
+        if (lo==hi){
+            //char not found, must add branch
+            tree->branches = realloc( tree->branches, (tree->branchCount+1)*sizeof(SymbolTreeNode*) );
+            //if (!tree->branches) ...
+            tree->branchCount++;
+            tree->branches[tree->branchCount-1] = alloc_SymbolTreeNode(op->symbol[i], i==len-1 ? op : NULL );
+			//if (!tree->branches[tree->branchCount-1]) ...
+            SymbolTreeNode *tmp = NULL;
+            for (j=tree->branchCount-1;j>=0;j--){
+                if (j && op->symbol[i] < tree->branches[j-1]->c){
+                    tmp = tree->branches[j-1];
+                    tree->branches[j-1] = tree->branches[j];
+                    tree->branches[j] = tmp;
+                }
+                else{
+                    //j is the right place for the symbol char
+                    tree = tree->branches[j];
+                    while (i!=len-1){
+						i++;
+                        tree->branches = malloc(sizeof(SymbolTreeNode*));
+                        tree->branchCount = 1;
+                        tree->branches[0] = alloc_SymbolTreeNode(op->symbol[i],NULL);
+                        tree = tree->branches[0];
+                    }
+					tree->op = op;
+                    return 0;
+                }
+            }
+        }
+        else{
+            //char found, continue on the branch by searching next symbol char
+            i++;
+        }
+
+    }
+
+    return -1; //should never get here
+}
+
+//Moved the declaration to Operators_and_Operands_definitions.h
+SymbolTreeNode *operatorsSymbolTree = NULL;
+SymbolTreeNode *create_SymbolTree(){
+	SymbolTreeNode *newSymbolTree = alloc_SymbolTreeNode('\0',NULL);
+	//if (!newSymbolTree) ...
+	for (int i=0;i<operatorsCount;i++){
+		if ( addSymbolTo_SymbolTree(newSymbolTree,operators[i]) ){
+			printf("\033[31mERROR\033[0m while trying to add operator symbol \"\033[36m%s\033[0m\" to SymbolTree\n",operators[i]->symbol);
+			free_SymbolTreeNode(newSymbolTree);
+			return NULL;
+		}
+	}
+	return newSymbolTree;
+}
+
+int isOperatorFirstChar(char c){
+	//if (!operatorsSymbolTree) ...
+	for (int i=0;i<operatorsSymbolTree->branchCount;i++){
+		if (operatorsSymbolTree->branches[i]->c == c){
+			return 1;
+		}
+	}
+	return 0;
+}
+
+//in the symbol tree the leaf nodes are those with branchCount = 0
+ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *tree,ExpressionString *es){
+    ExpressionToken tok = {NULLTERM,NULL};
 
 	char tmp = 0;
 	int i = es->index;
-	while (isWhiteSpace(es->str[i])) i++;
-	es->index = i;
+	if (es->str[i]==' '){
+		es->index = ++i;
+	}
 	
 	if (es->str[i]=='\0'){
 		tok.type = NULLTERM;
@@ -239,63 +285,95 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString/*_OperatorAndOper
 		es->index = i+1;
 		return tok;
 	}
-	if (isOperandChar(es->str[i])){ //this way the entire token must be of operandChars
-		while (isOperandChar(es->str[i])) i++; //continue scanning until end of token
+
+	while (es->str[i]!=' ' && !isReservedChar(es->str[i]) && !isOperatorFirstChar(es->str[i])) i++ ;
+	if (i!=es->index){
 		tmp = es->str[i];
 		es->str[i] = '\0';
-		tok.type = OPERAND;
-		tok.data = parseOperandStringFormatToVoidPtr(es->str+es->index);
-		if (tok.data != NULL){ //operand string format was recognized and correctely parsed
-			es->str[i] = tmp;
-			es->index = i;
-			return tok;
-		}
-		else{
-			printf("Parsing error in expression string: %s (unable to identify token in position %d)\n",es->str,es->index);
+		Operand *operand = parseOperandStringFormatToVoidPtr(es->str+es->index);
+		if (!operand){
+			printf("Parsing error in expression string: %s (unable to identify token in position %d: %s)\n",es->str,es->index,es->str+es->index);
 			tok.type = NULLTERM;
+			tok.data = NULL;
 			es->str[i] = tmp;
 			es->index = i;
 			return tok;
 		}
-	}
-
-	while (!isReservedChar(es->str[i]) && !isWhiteSpace(es->str[i]) && !isOperandChar(es->str[i])) i++;
-	tmp = es->str[i];
-	es->str[i] = '\0';
-	for (int j=0;j<operatorsCount;j++){ //check if the token is an operator symbol
-		if (!strcmp(es->str+es->index,operators[j]->symbol)){
-			tok.type = OPERATOR;
-			tok.data = (void*) operators[j];
-			es->str[i] = tmp;
-			es->index = i;
-			return tok;
-		}
-	}
-	//if we get here it means the token wasn't an operator symbol, so it must be an operand
-	es->str[i] = tmp;
-	//while (!isReservedChar(es->str[i]) && !isWhiteSpace(es->str[i])) i++;
-	while (isOperandChar(es->str[i])) i++; //continue scanning until end of token
-	                                       //this way an operand token can:
-										   // have all chars that are also operatorChars
-										   // have all chars that are isOperandChars
-										   // begin with operatorChar and end with isOperandChars
-										   //cant have operatorChar*isOperandChar*operatorChar
-	tmp = es->str[i];
-	es->str[i] = '\0';
-	tok.type = OPERAND;
-	tok.data = parseOperandStringFormatToVoidPtr(es->str+es->index);
-	if (tok.data != NULL){ //operand string format was recognized and correctely parsed
+		tok.type = OPERAND;
+		tok.data = (void*) operand;
 		es->str[i] = tmp;
 		es->index = i;
 		return tok;
 	}
-	
-	//if we get here parseOperandStringFormatToVoidPtr wasn't able to parse the token so there must be an error (either operator symbol misspelling or incorrect operand string format)
-	printf("Parsing error in expression string: %s (unable to identify token in position %d)\n",es->str,es->index);
 
-	tok.type = NULLTERM;
-	tok.data = NULL;
-	return tok;
+    //the char in the root of the tree is not to be considered
+	int lo; int hi;
+	int mid;
+    for ( ; es->str[i]!=' ' && !isReservedChar(es->str[i]) ; i++){
+
+        lo = 0;
+		hi = tree->branchCount;
+        while (lo!=hi){ //search es char in the branches
+            if (tree->branches[lo]->c == es->str[i]){
+                tree = tree->branches[lo];
+                if (tree->op!=NULL){
+                    tok.type = OPERATOR;
+                    tok.data = (void*) tree->op;
+                    es->index = i+1;
+                    return tok;
+                }
+                break;
+            }
+            mid = (lo+hi) /2;
+            if (tree->branches[mid]->c == es->str[i]){
+                tree = tree->branches[mid];
+                if (tree->op!=NULL){
+                    tok.type = OPERATOR;
+                    tok.data = (void*) tree->op;
+                    es->index = i+1;
+                    return tok;
+                }
+                break;
+            }
+			if (lo==mid){
+				hi = mid;
+				break;
+			}
+            else if (tree->branches[mid]->c > es->str[i]){
+                hi = mid;
+            }
+            else{
+                lo = mid;
+            }
+        }
+        if (lo==hi){ //es char not found, so it's not an Operator => must be an Operand
+            break;
+        }
+        else{
+            //es char found, search for the next down the tree
+        }
+
+    }
+    
+    //it's an Operand
+    while (es->str[i]!=' ' && !isReservedChar(es->str[i]) && !isOperatorFirstChar(es->str[i])) i++ ;
+    tmp = es->str[i];
+    es->str[i] = '\0';
+    Operand *operand = parseOperandStringFormatToVoidPtr(es->str+es->index);
+    if (!operand){
+        printf("Parsing error in expression string: %s (unable to identify token in position %d: %s)\n",es->str,es->index,es->str+es->index);
+        tok.type = NULLTERM;
+        tok.data = NULL;
+        es->str[i] = tmp;
+        es->index = i;
+        return tok;
+    }
+    tok.type = OPERAND;
+    tok.data = (void*) operand;
+    es->str[i] = tmp;
+    es->index = i;
+
+    return tok;
 }
 
 typedef struct{
@@ -350,12 +428,12 @@ void addTo_ExpressionToken_Vector(ExpressionToken_Vector *vec,ExpressionToken to
 	return;
 }
 
-ExpressionToken_Vector *create_ExpressionToken_Vector_from_ExpressionString(ExpressionString *es){
+ExpressionToken_Vector *create_ExpressionToken_Vector_from_ExpressionString(SymbolTreeNode *tree,ExpressionString *es){
 	ExpressionToken_Vector *newVec = create_ExpressionToken_Vector(10); //magic number
 	//if (!newVec) ...
 
 	do {
-		addTo_ExpressionToken_Vector(newVec,get_next_ExpressionToken_from_ExpressionString(es));
+		addTo_ExpressionToken_Vector(newVec,get_next_ExpressionToken_from_ExpressionString(tree,es));
 	} while (newVec->array[newVec->count-1].type!=NULLTERM);
 	/*
 	if (newVec->array[newVec->count].type!=NULLTERM){
@@ -382,7 +460,14 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionToken_Vector(ExpressionT
 	return vec->array[vec->index++];
 }
 
-
+void print_ExpressionTokenVector(ExpressionToken_Vector *vec){
+	for (int i=0;i<vec->count;i++){
+		print_ExpressionToken(vec->array[i]);
+		printf("_");
+	}
+	printf("\n");
+	return;
+}
 
 
 
