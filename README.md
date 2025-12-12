@@ -1,9 +1,5 @@
-Look at /examples/float
-on linux:
-    gcc float_Operators_and_Operands_definitions.c float_main_ExpressionParser.c -g3 -lm
-    valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./a.out
-
 IMPORTANT!: Read comments in Operators_and_Operands_definitions.h
+            and edit Operators_and_Operands_definitions.h accordingly
 
 IMPORTANT!:
 Use at the beginning of main():
@@ -17,7 +13,6 @@ to check that:
     2) Operand string format doesn't include one the reserved chars '\0', '(', ')', ','
     3) No two Operators have the same symbol (gets checked in create_SymbolTree too)
     4) Operand string format doesn't include any char that is also the first char of an Operator symbol
-
 
 
 

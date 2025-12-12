@@ -5,35 +5,35 @@ OPERAND_VALUE_TYPE sumFunc(OPERAND_VALUE_TYPE args[2]){
 	return args[0]+args[1];
 }
 
-float subFunc(OPERAND_VALUE_TYPE args[2]){
+OPERAND_VALUE_TYPE subFunc(OPERAND_VALUE_TYPE args[2]){
 	return args[0]-args[1];
 }
 
-float multFunc(OPERAND_VALUE_TYPE args[2]){
+OPERAND_VALUE_TYPE multFunc(OPERAND_VALUE_TYPE args[2]){
 	return args[0]*args[1];
 }
 
-float divFunc(OPERAND_VALUE_TYPE args[2]){
+OPERAND_VALUE_TYPE divFunc(OPERAND_VALUE_TYPE args[2]){
 	return args[0]/args[1];
 }
 
-float sqrtFunc(OPERAND_VALUE_TYPE args[1]){
+OPERAND_VALUE_TYPE sqrtFunc(OPERAND_VALUE_TYPE args[1]){
 	return sqrt(args[0]);
 }
 
-float powFunc(OPERAND_VALUE_TYPE args[2]){
+OPERAND_VALUE_TYPE powFunc(OPERAND_VALUE_TYPE args[2]){
 	return pow(args[0],args[1]);
 }
 
-float zeroFunc(){
+OPERAND_VALUE_TYPE zeroFunc(){
 	return 0.0;
 }
 
-float oneFunc(){
+OPERAND_VALUE_TYPE oneFunc(){
 	return 1.0;
 }
 
-float trisumFunc(OPERAND_VALUE_TYPE args[3]){
+OPERAND_VALUE_TYPE trisumFunc(OPERAND_VALUE_TYPE args[3]){
 	return args[0]+args[1]+args[2];
 }
 
@@ -79,6 +79,11 @@ void release_OperandValue(OPERAND_VALUE_TYPE value){
 void print_OperandValue(OPERAND_VALUE_TYPE val){
 	//for floats
 	printf("%f",val);
+	return;
+}
+
+void sprint_OperandValue(char *s,OPERAND_VALUE_TYPE val){
+	sprintf(s,"%f",val);
 	return;
 }
 

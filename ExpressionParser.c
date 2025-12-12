@@ -24,7 +24,7 @@ void runExpressionTests(ExpressionTestCase *tests,int testsCount){
 		if (resVec){
 			res = resVec->values[0] ;
 			char out[256]; out[255] = 0;
-			sprintf(out,"%f",res);
+			sprint_OperandValue(out,res);
 			if ( strcmp(tests[i].output,out) ){
 				fail++;
 				printf("\033[31mFAIL\033[0m test %d: expected %s but got %s\n",i,tests[i].output,out);
