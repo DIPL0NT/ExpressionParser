@@ -4,6 +4,10 @@
 
 int main(){
 	
+	/*
+	NECESSARY
+	Setting up and checking definition
+	*/
 	if (!checkCompatibilityOperatorAndOperandChars()){
 		return 1;
 	}
@@ -33,7 +37,7 @@ int main(){
 	char input[] = "trisum 1(2, 3)"; //Result = 6
 	*/
 	
-	char input[] = "2+sqrt(4)"; 
+	char input[] = "2+sqrt4"; 
 	//char input[] = "Z+I+I"; //Result = 2
 
 	/*Input acquisition*/
@@ -41,6 +45,7 @@ int main(){
 	ExpressionString es = create_ExpressionString(input);
 	printf("ExpressionString: %s\n",es.str);
 	ExpressionToken tok = {NULLTERM,NULL};
+	/*
 	printf("Parsed tokens: ");
 	while ( (tok = get_next_ExpressionToken_from_ExpressionString(operatorsSymbolTree,&es)).type!=NULLTERM ){
 		print_ExpressionToken(tok);
@@ -48,16 +53,19 @@ int main(){
 	}
 	es.index = 0;
 	printf("\n");
+	*/
 	
 	ExpressionToken_Vector *tokenVec = NULL;
 	tokenVec = create_ExpressionToken_Vector_from_ExpressionString(operatorsSymbolTree,&es);
-	printf("Token Vector: ");
+	printf("Token Vector: "); print_ExpressionTokenVector(tokenVec);
+	/*
 	for (int i=0;i<tokenVec->count;i++){
 		print_ExpressionToken(tokenVec->array[i]);
 		printf("_");
 	}
 	printf("\n");
 	tokenVec->index = 0;
+	*/
 	/*Create ExpressionTree*/
 	ExpressionTreeNode *tree = create_ExpressionTree_from_ExpressionToken_Vector(tokenVec);
 	print_ExpressionTree(tree);
@@ -79,6 +87,7 @@ int main(){
 	if (resVec) free_OperandVec(resVec);
 	if (tree) free_ExpressionTreeNode(tree);
 	
+	if (operatorsSymbolTree) free_SymbolTreeNode(operatorsSymbolTree);
 
 	return 0;
 }

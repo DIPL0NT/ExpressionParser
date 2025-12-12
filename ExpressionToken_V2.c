@@ -136,6 +136,7 @@ void free_SymbolTreeNode(SymbolTreeNode *tree){
     for (int i=0;i<tree->branchCount;i++){
         free_SymbolTreeNode(tree->branches[i]);
     }
+	free(tree->branches);
     free(tree);
 
     return;
