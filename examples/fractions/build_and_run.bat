@@ -4,11 +4,11 @@
 
 @echo off
 
-gcc .\fractions_implementation\fractions.c .\fractions_Operators_and_Operands_definitions.c .\fractions_main.c -o fractions_main.exe 
+gcc .\fractions_implementation\fractions.c .\fractions_Operators_and_Operands_definitions.c .\fractions_main.c -o .\bin\fractions_main.exe 
 if %errorlevel% neq 0 (
     echo Build failed
     exit %errorlevel%
 ) else (
     echo Build completed
 )
-.\fractions_main.exe
+.\bin\fractions_main.exe
