@@ -10,6 +10,7 @@ int isReservedChar(char c){
 	return 0;
 }
 
+//moved to Operators_and_Operands_definitions.h
 //#define OPERAND_VALUE_TYPE float
 
 int isOperatorChar(char c){ //could use the symbol tree or a table, blah blah blah
@@ -60,16 +61,19 @@ void print_Operand(Operand *o){
 	return;
 }
 
-/* IMPORTANT
-* Use at the beginning of main():
-*	checkCompatibilityOperatorAndOperandChars();
+//Defined in ExpressionToken.c , can only be used after create_SymbolTree has been run.
+int isOperatorFirstChar(char c);
+
+/* IMPORTANT!
+* Use at the beginning of main() (can only be used after operatorsSymbolTree has been created with create_SymbolTree() ):
+*	checkOperatorAndOperandCharsDefinitions();
 * to check that:
 * 	1) Operator symbols don't include one of the reserved chars '\0', '(', ')', ','
 * 	2) Operand string format doesn't include one the reserved chars '\0', '(', ')', ','
-* 	3) No char is both in an Operator symbol and in the Operand string format
-*   4) No two Operators have the same symbol (gets checked in create_SymbolTree too)
+*   3) No two Operators have the same symbol (gets checked in create_SymbolTree too)
+* 	4) Operand string format doesn't include any char that is also the first char of an Operator symbol
 */
-int checkCompatibilityOperatorAndOperandChars(/* ExpressionContext *context */){
+int checkOperatorAndOperandCharsDefinitions(/* ExpressionContext *context */){
 
 	for (int i=0;i<operatorsCount;i++){
 		if (operators[i]->fix==INFIX && operators[i]->arity!=2){
@@ -101,9 +105,9 @@ int checkCompatibilityOperatorAndOperandChars(/* ExpressionContext *context */){
 	for (int i=0;i<256;i++){
 		if (
 			(char)i != '\0' && (char)i != '(' &&(char)i != ')' && (char)i != ','
-			&& isOperatorChar((char)i) && isOperandChar((char)i)
+			&& isOperandChar((char)i) && isOperatorFirstChar((char)i) 
 		){
-			printf("\033[31mERROR\033[0m due to incompatible Operator symbols and Operand string format definitions: char %c is recognized both as an Operator char by isOperatorChar() and as an Operand char by isOperandChar()\n",(char)i);
+			printf("\033[31mERROR\033[0m due to incompatible Operator symbols and Operand string format definitions: char %c is recognized both as an Operand string format char by isOperandChar() and is the first char of an Operator symbol\n",(char)i);
 			return 0;
 		}
 	}
@@ -111,10 +115,6 @@ int checkCompatibilityOperatorAndOperandChars(/* ExpressionContext *context */){
 	printf("\033[32mCORRECT\033[0m Operator symbols and Operand string format definitions\n");
 	return 1;
 }
-
-
-
-
 
 
 
