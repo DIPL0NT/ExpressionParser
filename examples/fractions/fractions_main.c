@@ -29,11 +29,60 @@ int main(int argc,char** argv){
 
 	runExpressionTests(tests,n);
 
+	char input[] = "7/12 * 2/3 + 1/4";
+	//Input acquisition
+	printf("Input: \033[7m%s\033[0m\n",input);
+	ExpressionString es = create_ExpressionString(input);
+	printf("ExpressionString: %s\n",es.str);
+	ExpressionToken_Vector *tokenVec = NULL;
+	tokenVec = create_ExpressionToken_Vector_from_ExpressionString(operatorsSymbolTree,&es);
+	printf("Token Vector: "); print_ExpressionTokenVector(tokenVec);
+	//Create ExpressionTree
+	ExpressionTreeNode *tree = create_ExpressionTree_from_ExpressionToken_Vector(tokenVec);
+	print_ExpressionTree(tree);
+	printf("\n");
+	//Evaluation
+	OperandVec_Wrapper res_wrp = (OperandVec_Wrapper){NULL,NULL};
+	res_wrp = evaluate_ExpressionTree(tree);
+	if (!is_OperandVec_Wrapper_NULL(res_wrp)){
+		fraction *res = VoidPtr_to_Fraction(res_wrp.vec->values[0]) ;
+		printf("Result\033[7m = ");
+		print_fraction(res);
+		printf("\033[0m\n");
+	}
+	else{
+		//
+	}
 	//CleanUp
-	free_SymbolTreeNode(operatorsSymbolTree);
+	free(es.str);
+	if (tokenVec) free_ExpressionToken_Vector(tokenVec);
+	if (!is_OperandVec_Wrapper_NULL(res_wrp)){
+		release_OperandVec_Wrapper_values(res_wrp);
+		free_OperandVec_Wrapper(res_wrp);
+	}
+
+	//SECOND TIME
+	printf("Second Time\n");
+	print_ExpressionTree(tree);
+	printf("\n");
+	//Evaluation
+	res_wrp = (OperandVec_Wrapper){NULL,NULL};
+	res_wrp = evaluate_ExpressionTree(tree);
+	if (!is_OperandVec_Wrapper_NULL(res_wrp)){
+		fraction *res = VoidPtr_to_Fraction(res_wrp.vec->values[0]) ;
+		printf("Result\033[7m = ");
+		print_fraction(res);
+		printf("\033[0m\n");
+	}
+	else{
+		//
+	}
+
+	if (tree) free_ExpressionTreeNode(tree);
+	
+	if (operatorsSymbolTree) free_SymbolTreeNode(operatorsSymbolTree);
 
 	return 0;
 }
-
 
 
