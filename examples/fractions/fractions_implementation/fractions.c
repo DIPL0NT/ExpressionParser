@@ -1,5 +1,6 @@
-#include <stdio.h>
 #include "fractions.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 int abs(int x){
 	return x<0 ? -x : x ;
@@ -46,21 +47,28 @@ int mcm(int x,int y){
 
 
 
-fraction create_fraction(int num,int den){
+fraction *alloc_fraction(int num,int den){
 	//if (den==0) ...
-	fraction f;
-	f.num = num;
-	f.den = den;
+	fraction *f = malloc(sizeof(fraction));
+	//if (!f) ...
+	f->num = num;
+	f->den = den;
 	return f;
 }
 
-void print_fraction(fraction f){
-	printf("%d/%d",f.num,f.den);
+void free_fraction(fraction *f){
+	//if (!f) ...
+	free(f);
+	return;
+}
+
+void print_fraction(fraction *f){
+	printf("%d/%d",f->num,f->den);
 	return;
 }
 
 void simplify_fraction(fraction *f){
-	//if (!f) return;
+	//if (!f) ...
 	//if (f->den==0) ...
 	int d = mcd(f->num,f->den);
 	f->num = f->num / d *sign(f->den);
@@ -68,62 +76,89 @@ void simplify_fraction(fraction *f){
 	return;
 }
 
-int sign_fraction(fraction f){
-	return sign(f.num)*sign(f.den);
+int sign_fraction(fraction *f){
+	//if (!f) ...
+	return sign(f->num)*sign(f->den);
 }
 
-fraction simplified_fraction(fraction f){
-	//if (f.den==0) ...
-	int d = mcd(f.num,f.den);
-	f.num = f.num / d *sign(f.den);
-	f.den = abs(f.den / d);
-	return f;
-}
-
-fraction sum_fractions(fraction f1,fraction f2){
-	simplify_fraction(&f1);
-	simplify_fraction(&f2);
-	fraction newf;
-	newf.den = mcm(f1.den,f2.den);
-	//if (newf.den==0) ...
-	newf.num = (newf.den/f1.den) * f1.num
-				+ (newf.den/f2.den) * f2.num;
+fraction *simplified_fraction(fraction *f){
+	//if (!f) ...
+	//if (f->den==0) ...
+	fraction *newf = malloc(sizeof(fraction));
+	//if (!newf) ...
+	int d = mcd(f->num,f->den);
+	newf->num = f->num / d *sign(f->den);
+	newf->den = abs(f->den / d);
 	return newf;
 }
 
-fraction sub_fractions(fraction f1,fraction f2){
-	simplify_fraction(&f1);
-	simplify_fraction(&f2);
-	fraction newf;
-	newf.den = mcm(f1.den,f2.den);
+fraction *sum_fractions(fraction *f1,fraction *f2){
+	//if (!f1 || !f2) ...
+	simplify_fraction(f1);
+	simplify_fraction(f2);
+	fraction *newf = malloc(sizeof(fraction));
+	//if (!newf) ...
+	newf->den = mcm(f1->den,f2->den);
 	//if (newf.den==0) ...
-	newf.num = (newf.den/f1.den) * f1.num
-				- (newf.den/f2.den) * f2.num;
+	newf->num = (newf->den/f1->den) * f1->num
+				+ (newf->den/f2->den) * f2->num;
 	return newf;
 }
 
-int compare_fractions(fraction f1, fraction f2){
-	f1 = sub_fractions(f1,f2);
-	if (f1.num==0) return 0;
-	return sign_fraction(f1);
+fraction *sub_fractions(fraction *f1,fraction *f2){
+	//if (!f1 || !f2) ...
+	simplify_fraction(f1);
+	simplify_fraction(f2);
+	fraction *newf = malloc(sizeof(fraction));
+	//if (!newf) ...
+	newf->den = mcm(f1->den,f2->den);
+	//if (newf.den==0) ...
+	newf->num = (newf->den/f1->den) * f1->num
+				- (newf->den/f2->den) * f2->num;
+	return newf;
 }
 
-fraction mult_fractions(fraction f1,fraction f2){
-	simplify_fraction(&f1);
-	simplify_fraction(&f2);
-	int f1_num = f1.num;
-	f1 = simplified_fraction(
-			create_fraction(f2.num,f1.den) );
-	f2 = simplified_fraction(
-				create_fraction(f1_num,f2.den) );
-	f1.num = f1.num * f2.num;
-	f1.den = f1.den * f2.den;
-	return f1;
+int compare_fractions(fraction *f1, fraction *f2){
+	//if (!f1 || !f2) ...
+	fraction *newf = sub_fractions(f1,f2);
+	//if (!newf) ...
+	if (newf->num==0) return 0;
+	int sign = sign_fraction(newf);
+	free_fraction(newf);
+	return sign;
 }
 
-fraction div_fractions(fraction f1,fraction f2){
-	return mult_fractions(
-			f1, create_fraction(f2.den,f2.num) );
+fraction *mult_fractions(fraction *f1,fraction *f2){
+	//if (!f1 || !f2) ...
+	simplify_fraction(f1);
+	simplify_fraction(f2);
+	fraction *newf = alloc_fraction(f2->num,f1->den);
+	//if (!newf) ...
+	fraction *resf1 = simplified_fraction( newf );
+	free_fraction(newf);
+	//if (!resf1) ...
+	newf = alloc_fraction(f1->num,f2->den);
+	//if (!newf) ...
+	fraction *resf2 = simplified_fraction( newf );
+	free_fraction(newf);
+	//if (!resf2) ...
+	newf = alloc_fraction( resf1->num*resf2->num , resf1->den*resf2->den );
+	free_fraction(resf1);
+	free_fraction(resf2);
+	//if (!newf) ...
+	return newf;
 }
+
+fraction *div_fractions(fraction *f1,fraction *f2){
+	//if (!f1 || !f2) ...
+	fraction *newf = alloc_fraction(f2->den,f2->num);
+	//if (!newf) ...
+	fraction *resf = mult_fractions(f1, newf );
+	free_fraction(newf);
+	//if (!resf) ...
+	return resf;
+}
+
+
 
 

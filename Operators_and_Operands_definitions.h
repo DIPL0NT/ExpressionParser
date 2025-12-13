@@ -1,25 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
-/***************************************************************************************************************************************************
- Include this file in a file where you will define everything , unless indicated otherwise by a comment, that is declared as extern in this file.
- Include ExpressionParser.c in the file where you will actually use the parser; before using the parser must set up with:
+/****************************************************************************************************************
+ Include ExpressionParser.c in a file where you will define everything that is marked as TODEFINE in this file.
+ The functions that actually implement the operators must receive and array of void* and return a void*
+ Before using the parser must set up with:
 operatorsSymbolTree = create_SymbolTree(); //necessary for everything else to work
 checkOperatorAndOperandCharsDefinitions(); //to check there's no errors in the definitions
- Customize the tests in runExpressionTests() defined in ExpressionParser.c .
-***************************************************************************************************************************************************/
+ Run tests with:
+runExpressionTests(your_tests,your_testsCount);
+****************************************************************************************************************/
 
-/*******************************************************************************************
- IMPORTANT!
- The OPERAND_VALUE_TYPE define is the only thing to edit in this file.
- Before it you can include the header file of the actual implementation of the operations. 
-*******************************************************************************************/
-//#include "examples/fractions/fractions_implementation/fractions.h"
-//#define OPERAND_VALUE_TYPE fraction
-#define OPERAND_VALUE_TYPE float
-
-//uncomment or comment out the above lines depending on what you are building
+#define OPERAND_VALUE_TYPE void*
 
 typedef struct Operand{
 	OPERAND_VALUE_TYPE value;
@@ -38,28 +32,41 @@ Operand *alloc_Operand(OPERAND_VALUE_TYPE value);
  The Operand string format must not include any reserved char.
  Reserverd chars: '\0'  '('  ')'  ',' 
 */
-extern int isOperandChar(char c);
+/*TODEFINE*/ int isOperandChar(char c);
 
 /*************************************************************************************************************************************************************
  Takes as input the string format of an operand and returns pointer to newly allocated operand
  ,in case of error returns NULL .
  Should look like this:
- 
+
+/examples/float/float_Operators_and_Operands_definitions.c:
 void *parseOperandStringFormatToVoidPtr(char *s){
-    OPERAND_VALUE_TYPE ret;
-    //parse the string to assign a value to ret
-    if (error) return NULL;
-    return (void*) alloc_Operand(ret);
+	float f;
+	if (1!=sscanf(s,"%f",&f)){
+		printf("\033[31mERROR\033[0m in parseOperandStringFormatToVoidPtr() : couldn't parse %s\n",s);
+		return NULL;
+	}
+	return (void*) alloc_Operand( Float_to_VoidPtr(f) );
 }
- eg if OPERAND_VALUE_TYPE is float the string format will be "%f" and sscanf() will be used to parse inputs, which will look like "0.1","31.07","4.04",etc
+
+/examples/fractions/fractions_Operators_and_Operands_definitions.c:
+void *parseOperandStringFormatToVoidPtr(char *s){
+    int num; int den;
+    if (2!=sscanf(s,"%d/%d",&num,&den)){
+        return NULL;
+    }
+    fraction *f = alloc_fraction(num,den);
+    return (void*) alloc_Operand(f);
+}
+
 *************************************************************************************************************************************************************/
-extern void *parseOperandStringFormatToVoidPtr(char *s);
+/*TODEFINE*/ void *parseOperandStringFormatToVoidPtr(char *s);
 
-extern void release_OperandValue(OPERAND_VALUE_TYPE value);
+/*TODEFINE*/ void release_OperandValue(OPERAND_VALUE_TYPE value);
 
-extern void print_OperandValue(OPERAND_VALUE_TYPE val);
+/*TODEFINE*/ void print_OperandValue(OPERAND_VALUE_TYPE val);
 
-extern void sprint_OperandValue(char *s,OPERAND_VALUE_TYPE val);
+/*TODEFINE*/ void sprint_OperandValue(char *s,OPERAND_VALUE_TYPE val);
 
 /* Operators */
 typedef enum{PREFIX,INFIX,POSTFIX} Fix;
@@ -76,12 +83,12 @@ typedef struct Operator{
  Supported arities: any for PREFIX and POSTFIX, 2 for INFIX
 *****************************************************************************/
 //Look in examples to see what the definition should look like
-extern const Operator *operators[];
+/*TODEFINE*/ const Operator *operators[];
 /************************************************************
  Should look like
 int operatorsCount = sizeof(operators) / sizeof(Operator*);
 ************************************************************/
-extern int operatorsCount;
+/*TODEFINE*/ int operatorsCount;
 
 /* Symbol recognition decision tree */
 typedef struct SymbolTreeNode{
@@ -92,20 +99,16 @@ typedef struct SymbolTreeNode{
 } SymbolTreeNode;
 
 /***************************************
- IMPORTANT!
- Do not define this one.
- It is defined in ExpressionToken.c .
+ Do not define.
 ***************************************/
-extern SymbolTreeNode *operatorsSymbolTree;
+SymbolTreeNode *operatorsSymbolTree;
 /***********************************************************************************
  IMPORTANT!
+ Do not define.
  Use at the beginning of main():
 operatorsSymbolTree = create_SymbolTree(); //necessary for everything else to work
 ***********************************************************************************/
 SymbolTreeNode *create_SymbolTree();
-
-
-
 
 
 

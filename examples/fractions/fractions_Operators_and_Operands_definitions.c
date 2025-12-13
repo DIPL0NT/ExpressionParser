@@ -1,4 +1,8 @@
-#include "../../Operators_and_Operands_definitions.h"
+#include "../../ExpressionParser.c"
+#include "fractions_implementation/fractions.h"
+
+#define Fraction_to_VoidPtr(f) ( (void*)(f) )
+#define VoidPtr_to_Fraction(p) ( (fraction*)(p) )
 
 int isOperandChar(char c){
     if (c=='/'||('0'<=c&&c<='9')){
@@ -8,23 +12,29 @@ int isOperandChar(char c){
 }
 
 void *parseOperandStringFormatToVoidPtr(char *s){
-    OPERAND_VALUE_TYPE ret;
-    int converted = sscanf(s,"%d/%d",&ret.num,&ret.den);
+    int num; int den;
+    int converted = sscanf(s,"%d/%d",&num,&den);
     if (converted!=2) return NULL;
-    return (void*) alloc_Operand(ret);
+    fraction *f = alloc_fraction(num,den);
+    return (void*) alloc_Operand(f);
 } 
 
 void release_OperandValue(OPERAND_VALUE_TYPE value){
+    //if (!value) ...
+    free_fraction(value);
     return;
 }
 
 void print_OperandValue(OPERAND_VALUE_TYPE val){
-    printf("%d/%d",val.num,val.den);
+    //if (!val) ...
+    printf("%d/%d",VoidPtr_to_Fraction(val)->num,VoidPtr_to_Fraction(val)->den);
     return;
 }
 
 void sprint_OperandValue(char *s,OPERAND_VALUE_TYPE val){
-    sprintf(s,"%d/%d",val.num,val.den);
+    //if (!s) ...
+    //if (!val) ...
+    sprintf(s,"%d/%d",VoidPtr_to_Fraction(val)->num,VoidPtr_to_Fraction(val)->den);
     return;
 }
 

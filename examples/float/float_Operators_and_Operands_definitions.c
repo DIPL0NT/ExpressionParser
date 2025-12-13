@@ -1,40 +1,53 @@
-#include "../../Operators_and_Operands_definitions.h"
+#include "../../ExpressionParser.c"
 #include <math.h>
 
+typedef union F_VP{
+	float f;
+	void* vp;
+} F_VP;
+
+#define Float_to_VoidPtr(f) ( ((F_VP)(f)).vp )
+#define VoidPtr_to_Float(p) ( ((F_VP)(p)).f )
+
+
+
 OPERAND_VALUE_TYPE sumFunc(OPERAND_VALUE_TYPE args[2]){
-	return args[0]+args[1];
+	return Float_to_VoidPtr( VoidPtr_to_Float(args[0])+VoidPtr_to_Float(args[1]) ) ;
 }
 
 OPERAND_VALUE_TYPE subFunc(OPERAND_VALUE_TYPE args[2]){
-	return args[0]-args[1];
+	return Float_to_VoidPtr( VoidPtr_to_Float(args[0])-VoidPtr_to_Float(args[1]) );
 }
 
 OPERAND_VALUE_TYPE multFunc(OPERAND_VALUE_TYPE args[2]){
-	return args[0]*args[1];
+	return Float_to_VoidPtr( VoidPtr_to_Float(args[0])*VoidPtr_to_Float(args[1]) );
 }
 
 OPERAND_VALUE_TYPE divFunc(OPERAND_VALUE_TYPE args[2]){
-	return args[0]/args[1];
+	return Float_to_VoidPtr( VoidPtr_to_Float(args[0])/VoidPtr_to_Float(args[1]) );
 }
 
 OPERAND_VALUE_TYPE sqrtFunc(OPERAND_VALUE_TYPE args[1]){
-	return sqrt(args[0]);
+	float f = sqrt(VoidPtr_to_Float(args[0]));
+	return Float_to_VoidPtr( f );
 }
 
 OPERAND_VALUE_TYPE powFunc(OPERAND_VALUE_TYPE args[2]){
-	return pow(args[0],args[1]);
+	float f = pow(VoidPtr_to_Float(args[0]),VoidPtr_to_Float(args[1]));
+	return Float_to_VoidPtr( f );
 }
 
 OPERAND_VALUE_TYPE zeroFunc(){
-	return 0.0;
+	return Float_to_VoidPtr(0.0f);
 }
 
 OPERAND_VALUE_TYPE oneFunc(){
-	return 1.0;
+	return Float_to_VoidPtr(1.0f);
 }
 
 OPERAND_VALUE_TYPE trisumFunc(OPERAND_VALUE_TYPE args[3]){
-	return args[0]+args[1]+args[2];
+	float f = VoidPtr_to_Float(args[0])+VoidPtr_to_Float(args[1])+VoidPtr_to_Float(args[2]);
+	return Float_to_VoidPtr( f );
 }
 
 
@@ -63,12 +76,12 @@ int isOperandChar(char c){
 
 void *parseOperandStringFormatToVoidPtr(char *s){
 	//for floats
-	OPERAND_VALUE_TYPE f;
+	float f;
 	if (0==sscanf(s,"%f",&f)){
 		printf("\033[31mERROR\033[0m in parseOperandStringFormatToVoidPtr() : couldn't parse %s\n",s);
 		return NULL;
 	}
-	return (void*) alloc_Operand(f);
+	return (void*) alloc_Operand( Float_to_VoidPtr(f) );
 }
 
 void release_OperandValue(OPERAND_VALUE_TYPE value){
@@ -78,12 +91,14 @@ void release_OperandValue(OPERAND_VALUE_TYPE value){
 
 void print_OperandValue(OPERAND_VALUE_TYPE val){
 	//for floats
-	printf("%f",val);
+	printf("%f", VoidPtr_to_Float(val));
 	return;
 }
 
 void sprint_OperandValue(char *s,OPERAND_VALUE_TYPE val){
-	sprintf(s,"%f",val);
+	sprintf(s,"%f",VoidPtr_to_Float(val));
 	return;
 }
+
+
 

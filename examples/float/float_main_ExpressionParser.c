@@ -1,5 +1,4 @@
-#include "../../ExpressionParser.c"
-
+#include "float_Operators_and_Operands_definitions.c"
 
 
 int main(){
@@ -56,7 +55,7 @@ int main(){
 	OperandVec *resVec = NULL;
 	resVec = evaluate_ExpressionTree(tree);
 	if (resVec){
-		float res = resVec->values[0] ;
+		float res = VoidPtr_to_Float(resVec->values[0]) ;
 		printf("Result\033[7m = %f\033[0m\n",res);
 	}
 	else{
