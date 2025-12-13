@@ -2,8 +2,8 @@
 
 Maybe look at examples first (build scripts or prebuilt binaries included).
 ```bash
-/examples/float       # works right away
-/examples/fractions   # currently has memory leaks
+/examples/float       # primitive type values as operands
+/examples/fractions   # dynamically allocated objects as operands
 ```
 
 ### Important! :
@@ -13,15 +13,15 @@ Operators_and_Operands_definitions.h:
 
 [...]
 
-/****************************************************************************************************************
- Include ExpressionParser.c in a file where you will define everything that is marked as TODEFINE in this file.
- The functions that actually implement the operators must receive and array of void* and return a void*
+/***********************************************************************************************************************************************
+ Include ExpressionParser.c in a file where everything that is marked as TODEFINE in this file must be defined.
+ Define the operators' functions, which must receive an array of void* and return a void* (your operands must be cast to void*), in that file.
  Before using the parser must set up with:
 operatorsSymbolTree = create_SymbolTree(); //necessary for everything else to work
 checkOperatorAndOperandCharsDefinitions(); //to check there's no errors in the definitions
  Run tests with:
 runExpressionTests(your_tests,your_testsCount);
-****************************************************************************************************************/
+***********************************************************************************************************************************************/
 
 [...]
 ```

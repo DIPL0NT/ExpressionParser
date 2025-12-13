@@ -3,15 +3,15 @@
 #include <string.h>
 #include <stdint.h>
 
-/****************************************************************************************************************
- Include ExpressionParser.c in a file where you will define everything that is marked as TODEFINE in this file.
- The functions that actually implement the operators must receive and array of void* and return a void*
+/***********************************************************************************************************************************************
+ Include ExpressionParser.c in a file where everything that is marked as TODEFINE in this file must be defined.
+ Define the operators' functions, which must receive an array of void* and return a void* (your operands must be cast to void*), in that file.
  Before using the parser must set up with:
 operatorsSymbolTree = create_SymbolTree(); //necessary for everything else to work
 checkOperatorAndOperandCharsDefinitions(); //to check there's no errors in the definitions
  Run tests with:
 runExpressionTests(your_tests,your_testsCount);
-****************************************************************************************************************/
+***********************************************************************************************************************************************/
 
 #define OPERAND_VALUE_TYPE void*
 
