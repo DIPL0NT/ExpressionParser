@@ -68,12 +68,27 @@ int main(){
 		release_OperandVec_Wrapper_values(res_wrp);
 		free_OperandVec_Wrapper(res_wrp);
 	}
+
+	//SECOND TIME
+	printf("Second Time\n");
+	print_ExpressionTree(tree);
+	printf("\n");
+	//Evaluation
+	res_wrp = (OperandVec_Wrapper){NULL,NULL};
+	res_wrp = evaluate_ExpressionTree(tree);
+	if (!is_OperandVec_Wrapper_NULL(res_wrp)){
+		float res = VoidPtr_to_Float(res_wrp.vec->values[0]) ;
+		printf("Result\033[7m = %f\033[0m\n",res);
+	}
+	else{
+		//
+	}
+
 	if (tree) free_ExpressionTreeNode(tree);
 	
 	if (operatorsSymbolTree) free_SymbolTreeNode(operatorsSymbolTree);
 
 	return 0;
 }
-
 
 
