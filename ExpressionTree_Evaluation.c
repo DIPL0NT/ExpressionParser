@@ -14,16 +14,23 @@ OperandVec *alloc_OperandVec(int count){
 	return newVec;
 }
 
+void release_OperandVec_values(OperandVec *vec){
+    //if (!vec) ...
+	for (int i=0;i<vec->count;i++){
+		release_OperandValue(vec->values[i]);
+	}
+    return;
+}
+
 void free_OperandVec(OperandVec *vec){
 	//if (!vec) ...
-	/*for (int i=0;i<vec->count;i++){
-		releaseOperandValue(vec->values[i]); //must not free actual operand values since they might still be needed 
-	}*/
+	//release_OperandVec_values(vec); //must not free actual operand values since they might still be needed
 	free(vec->values);
 	free(vec);
 	return;
 }
 
+//frees vec1 and vec2
 OperandVec *combine_OperandVec(OperandVec *vec1,OperandVec *vec2){
 	//if (!vec1 || !vec2) ...
 	OperandVec *newVec = alloc_OperandVec(vec1->count+vec2->count);
@@ -40,34 +47,77 @@ OperandVec *combine_OperandVec(OperandVec *vec1,OperandVec *vec2){
 	return newVec;
 }
 
+typedef struct OperandVec_Wrapper{
+    OperandVec *vec;
+    int *freeFlag;
+} OperandVec_Wrapper;
 
-OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
+int is_OperandVec_Wrapper_NULL(OperandVec_Wrapper wrp){
+    if (wrp.vec==NULL) return 1;
+    if (wrp.freeFlag==NULL) return 1;
+    return 0;
+}
+
+OperandVec_Wrapper alloc_OperandVec_Wrapper(OperandVec *vec){
+    //if (!vec) ...
+    OperandVec_Wrapper wrp = {vec,NULL};
+    wrp.freeFlag = malloc(vec->count*sizeof(int)); //use calloc ?
+    //if (!wrp.freeFlag) ...
+    return wrp;
+}
+
+void release_OperandVec_Wrapper_values(OperandVec_Wrapper wrp){
+    //if (is_OperandVec_Wrapper_NULL(wrp)) ...
+    for (int i=0;i<wrp.vec->count;i++){
+        if (wrp.freeFlag[i]){
+            release_OperandValue(wrp.vec->values[i]);
+        }
+	}
+    return;
+}
+
+void free_OperandVec_Wrapper(OperandVec_Wrapper wrp){
+    //if (is_OperandVec_Wrapper_NULL(wrp)) ...
+    free_OperandVec(wrp.vec);
+    free(wrp.freeFlag);
+    return;
+}
+
+OperandVec_Wrapper evaluate_ExpressionTree(ExpressionTreeNode *tree){
     if (!tree){
         printf("\033[31mERROR\033[0m evaluate_ExpressionTree(NULL)\n");
-        return NULL;
+        return (OperandVec_Wrapper){NULL,NULL};
     }
 
 	OperandVec *result = NULL;
 	if (tree->type==OPERAND_NODE){
 		result = alloc_OperandVec(1);
 		result->values[0] = ((Operand*) tree->token.data)->value ;
-		return result;
+        OperandVec_Wrapper wrp = alloc_OperandVec_Wrapper(result);
+        //if (is_OperandVec_Wrapper_NULL(wrp)) ...
+        wrp.freeFlag[0] = 0;
+		return wrp;
 	}
 
 	result = alloc_OperandVec(tree->args.count);
+    OperandVec_Wrapper result_wrp = alloc_OperandVec_Wrapper(result);
 	int i = 0;
 	ExpressionTreeNode_ListNode *cur = tree->args.head;
-    OperandVec *subRes = NULL;
-	for (int j=0;j<tree->args.count;j++){
-        subRes = NULL;
+    //OperandVec *subRes = NULL;
+    OperandVec_Wrapper subRes_wrp = {NULL,NULL};
+	//for (int j=0;j<tree->args.count;j++){
+    while (cur){
+        //subRes = NULL;
 		if (cur->treeNode->type==OPERAND_NODE){
-			result->values[i++] = ((Operand*)cur->treeNode->token.data)->value ;
+			result_wrp.vec->values[i] = ((Operand*)cur->treeNode->token.data)->value ;
+            result_wrp.freeFlag[i++] = 0;
 		}
 		else if (cur->treeNode->type==OPERATOR_NODE){
             //maybe rewrite with combineVecs
-            subRes = evaluate_ExpressionTree(cur->treeNode); //remember that functions must always return exactely 1 value
-			result->values[i++] = subRes->values[0] ; 
-            free_OperandVec(subRes);
+            subRes_wrp = evaluate_ExpressionTree(cur->treeNode); //remember that functions must always return exactely 1 value
+			result_wrp.vec->values[i] = subRes_wrp.vec->values[0] ;
+            result_wrp.freeFlag[i++] = subRes_wrp.freeFlag[0];
+            free_OperandVec_Wrapper(subRes_wrp);
 		}
 		else if (cur->treeNode->type==LIST_NODE){ //should be the only other case
 			result->values = (OPERAND_VALUE_TYPE*)realloc(result->values,(result->count+cur->treeNode->args.count)*sizeof(OPERAND_VALUE_TYPE));
@@ -76,9 +126,10 @@ OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
 			ExpressionTreeNode_ListNode *cur2 = cur->treeNode->args.head ;
 			for (int k=0;k<cur->treeNode->args.count;k++){
                 //maybe rewrite with combineVecs
-                subRes = evaluate_ExpressionTree(cur2->treeNode); //remember that functions must always return exactely 1 value
-				result->values[i++] = subRes->values[0] ;
-                free_OperandVec(subRes);
+                subRes_wrp = evaluate_ExpressionTree(cur2->treeNode); //remember that functions must always return exactely 1 value
+				result_wrp.vec->values[i] = subRes_wrp.vec->values[0] ;
+                result_wrp.freeFlag[i++] = subRes_wrp.freeFlag[0];
+                free_OperandVec_Wrapper(subRes_wrp);
 				cur2 = cur2->next;
 			}
 		}
@@ -87,25 +138,29 @@ OperandVec *evaluate_ExpressionTree(ExpressionTreeNode *tree){
 	}
 
 	if (tree->type==LIST_NODE){
-		return result;
+		return result_wrp;
 	}
 
 	if (tree->type==OPERATOR_NODE){ //should be the only remaning case
 		const Operator *op = (const Operator*)tree->token.data ;
 		if (result->count != op->arity ){
 			printf("\033[31mERROR\033[0m while evaluating expression tree beacuse of arity mismatch for an operator \"\033[36m%s033[0m\"\n",op->symbol);
-			free_OperandVec(result);
-			return NULL;
+			release_OperandVec_Wrapper_values(result_wrp);
+            free_OperandVec_Wrapper(result_wrp);
+			return (OperandVec_Wrapper){NULL,NULL};
 		}
 		OPERAND_VALUE_TYPE res = op->function(result->values) ;
-		free_OperandVec(result);
+		release_OperandVec_Wrapper_values(result_wrp);
+        free_OperandVec_Wrapper(result_wrp);
 		result = alloc_OperandVec(1);
-		result->values[0] = res ;
+        result_wrp = alloc_OperandVec_Wrapper(result);
+		result_wrp.vec->values[0] = res ;
+        result_wrp.freeFlag[0] = 1;
 
-		return result;
+		return result_wrp;
 	}
 
-	return NULL; //should never get here anyway
+	return (OperandVec_Wrapper){NULL,NULL}; //should never get here anyway
 }
 
 

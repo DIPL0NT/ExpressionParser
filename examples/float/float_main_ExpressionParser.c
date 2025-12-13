@@ -52,10 +52,10 @@ int main(){
 	print_ExpressionTree(tree);
 	printf("\n");
 	//Evaluation
-	OperandVec *resVec = NULL;
-	resVec = evaluate_ExpressionTree(tree);
-	if (resVec){
-		float res = VoidPtr_to_Float(resVec->values[0]) ;
+	OperandVec_Wrapper res_wrp = {NULL,NULL};
+	res_wrp = evaluate_ExpressionTree(tree);
+	if (!is_OperandVec_Wrapper_NULL(res_wrp)){
+		float res = VoidPtr_to_Float(res_wrp.vec->values[0]) ;
 		printf("Result\033[7m = %f\033[0m\n",res);
 	}
 	else{
@@ -64,10 +64,11 @@ int main(){
 	//CleanUp
 	free(es.str);
 	if (tokenVec) free_ExpressionToken_Vector(tokenVec);
-	if (resVec) free_OperandVec(resVec);
+	if (!is_OperandVec_Wrapper_NULL(res_wrp)) release_OperandVec_Wrapper(res_wrp);
 	if (tree) free_ExpressionTreeNode(tree);
 	
 	if (operatorsSymbolTree) free_SymbolTreeNode(operatorsSymbolTree);
 
 	return 0;
 }
+

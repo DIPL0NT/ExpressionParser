@@ -8,19 +8,23 @@ typedef struct ExpressionTestCase{
 void runExpressionTests(ExpressionTestCase *tests,int testsCount){
 
 	int fail = 0;
+	ExpressionString es;
+	ExpressionToken_Vector *tokenVec;
+	ExpressionTreeNode *tree;
+	OPERAND_VALUE_TYPE res;
+	OperandVec_Wrapper res_wrp;
 	for (int i=0;i<testsCount;i++){
 		printf("\n");
 		char *input = tests[i].input;
 		printf("\033[7m%s\033[0m\n",input);
-		ExpressionString es = create_ExpressionString(input);
-		ExpressionToken_Vector *tokenVec = create_ExpressionToken_Vector_from_ExpressionString(operatorsSymbolTree,&es);
+		es = create_ExpressionString(input);
+		tokenVec = create_ExpressionToken_Vector_from_ExpressionString(operatorsSymbolTree,&es);
 		print_ExpressionTokenVector(tokenVec);
-		ExpressionTreeNode *tree = create_ExpressionTree_from_ExpressionToken_Vector(tokenVec);
+		tree = create_ExpressionTree_from_ExpressionToken_Vector(tokenVec);
 		print_ExpressionTree(tree);
-		OperandVec *resVec = evaluate_ExpressionTree(tree);
-		OPERAND_VALUE_TYPE res; //default value
-		if (resVec){
-			res = resVec->values[0] ;
+		res_wrp = evaluate_ExpressionTree(tree);
+		if (!is_OperandVec_Wrapper_NULL(res_wrp)){
+			res = res_wrp.vec->values[0] ;
 			char out[256]; out[255] = 0;
 			sprint_OperandValue(out,res);
 			if ( strcmp(tests[i].output,out) ){
@@ -40,7 +44,10 @@ void runExpressionTests(ExpressionTestCase *tests,int testsCount){
 		//free(tokenVec->array);
 		free_ExpressionToken_Vector(tokenVec);
 		if (tree) free_ExpressionTreeNode(tree);
-		if (resVec) free_OperandVec(resVec);
+		if (!is_OperandVec_Wrapper_NULL(res_wrp)){
+			release_OperandVec_Wrapper_values(res_wrp);
+			free_OperandVec_Wrapper(res_wrp);
+		}
 		printf("\n");
 	}
 
