@@ -84,11 +84,16 @@ int main(){
 		//
 	}
 
+	//CleanUp
+	if (!is_OperandVec_Wrapper_NULL(res_wrp)){
+		release_OperandVec_Wrapper_values(res_wrp);
+		free_OperandVec_Wrapper(res_wrp);
+	}
+
 	if (tree) free_ExpressionTreeNode(tree);
 	
 	if (operatorsSymbolTree) free_SymbolTreeNode(operatorsSymbolTree);
 
 	return 0;
 }
-
 
