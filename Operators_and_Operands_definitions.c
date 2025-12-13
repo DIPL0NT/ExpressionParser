@@ -11,7 +11,7 @@ int isReservedChar(char c){
 }
 
 //moved to Operators_and_Operands_definitions.h
-//#define OPERAND_VALUE_TYPE float
+//#define OPERAND_VALUE_TYPE void*
 
 int isOperatorChar(char c){ //could use the symbol tree or a table, blah blah blah
 	for (int i=0;i<operatorsCount;i++){
@@ -64,14 +64,15 @@ void print_Operand(Operand *o){
 //Defined in ExpressionToken.c , can only be used after create_SymbolTree has been run.
 int isOperatorFirstChar(char c);
 
-/* IMPORTANT!
-* Use at the beginning of main() (can only be used after operatorsSymbolTree has been created with create_SymbolTree() ):
-*	checkOperatorAndOperandCharsDefinitions();
-* to check that:
-* 	1) Operator symbols don't include one of the reserved chars '\0', '(', ')', ','
-* 	2) Operand string format doesn't include one the reserved chars '\0', '(', ')', ','
-*   3) No two Operators have the same symbol (gets checked in create_SymbolTree too)
-* 	4) Operand string format doesn't include any char that is also the first char of an Operator symbol
+/*
+ IMPORTANT!
+ Use at the beginning of main() (can only be used after operatorsSymbolTree has been created with create_SymbolTree() ):
+checkOperatorAndOperandCharsDefinitions();
+ to check that:
+	1) Operator symbols don't include any of the reserved chars '\0' '(' ')' ','
+	2) Operand string format doesn't include any of the reserved chars '\0' '(' ')' ','
+	3) No two Operators have the same symbol (gets checked in create_SymbolTree() too)
+	4) Operand string format doesn't include any char that is also the first char of an Operator symbol
 */
 int checkOperatorAndOperandCharsDefinitions(/* ExpressionContext *context */){
 
@@ -115,7 +116,6 @@ int checkOperatorAndOperandCharsDefinitions(/* ExpressionContext *context */){
 	printf("\033[32mCORRECT\033[0m Operator symbols and Operand string format definitions\n");
 	return 1;
 }
-
 
 
 
