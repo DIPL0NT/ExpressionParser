@@ -31,4 +31,11 @@ TODO:
     (square) (sqrt) 
     3) when scanning the input string follow the decision tree to see if the word is a recognized symbol or not
 
+ExpressionTree_Creation.c : fill_INCOMPLETE_ExpressionTreeNode line 138 "if (currentNode->type==OPERATOR_NODE && currentNode->args.count+subtree->args.count > currentOp->arity){" maybe this check shouldn't be done because there could be another operator after that takes the arg ; in that case who checks that arg count is compatible with op arity at the end of the sub-expression
+NVM IT SHOULD BE RIGHT, the only case is if the are PREFIXandINFIX operators mixed with POSTFIX operators
+
+maybe concat_ExpressionTreeNode_List doesn't set the prev and next fields of the old and new tail correctely
+
+
+
 

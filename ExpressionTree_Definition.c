@@ -55,10 +55,16 @@ void addToTail_ExpressionTreeNode_List(ExpressionTreeNode_List *list,ExpressionT
 	ExpressionTreeNode_ListNode *newNode = (ExpressionTreeNode_ListNode*) malloc(sizeof(ExpressionTreeNode_ListNode));
 	//if (!newNode) ...
 	newNode->treeNode = treeNode;
+	
+	//debug
+	/* if (treeNode->type==OPERAND_NODE){
+		printf("\nADDtoTAIL operand %f\n", *((float*)(&((Operand*)treeNode->token.data)->value)) );
+	} */
+
 	newNode->next = NULL;
 	newNode->prev = list->tail;
 
-	if (!list->head){
+	if (!list->count){
 		list->head = newNode;
 		list->tail = newNode;
 	}
@@ -67,6 +73,7 @@ void addToTail_ExpressionTreeNode_List(ExpressionTreeNode_List *list,ExpressionT
 		list->tail = newNode;
 	}
 	list->count++;
+
 	return;
 }
 
@@ -77,12 +84,13 @@ void addToHead_ExpressionTreeNode_List(ExpressionTreeNode_List *list,ExpressionT
 	newNode->next = list->head;
 	newNode->prev = NULL;
 
-	if (list->head){
-		list->head->prev = newNode;
-	}
-	list->head = newNode;
-	if (!list->tail){
+	if (!list->count){
+		list->head = newNode;
 		list->tail = newNode;
+	}
+	else{
+		list->head->prev = newNode;
+		list->head = newNode;
 	}
 	
 	list->count++;
@@ -155,7 +163,7 @@ void concat_ExpressionTreeNode_List(ExpressionTreeNode_List *list1,ExpressionTre
 		return;
 	}
 
-	if (list1->head==NULL){
+	if (!list1->count){
 		list1->head = list2->head;
 		list1->tail = list2->tail;
 		list1->count = list2->count;
@@ -163,11 +171,16 @@ void concat_ExpressionTreeNode_List(ExpressionTreeNode_List *list1,ExpressionTre
 	}
 
 	list1->tail->next = list2->head;
-	list1->tail = list2->tail ? list2->tail : list1->tail ;
+	if (list2->head){ 
+		list2->head->prev = list1->tail;
+		list1->tail = list2->tail;
+	}
+	
 	list1->count += list2->count;
 
 	return;
 }
+
 
 
 
