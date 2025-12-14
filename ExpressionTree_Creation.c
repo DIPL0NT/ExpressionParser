@@ -131,7 +131,7 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
                 return error;
             }
 
-            //if (subtree->type==LIST_NODE){ //subtree is LIST for sure , must instead check if its args are lists
+            //if (subtree->type==LIST_NODE){ //subtree is LIST for sure
                 if (currentNode->type==OPERATOR_NODE && currentNode->args.count+subtree->args.count > currentOp->arity){
                     printf("\033[31mERROR\033[0m while parsing token number %d (argument count > \033[36m%d\033[0m = operator \"\033[36m%s\033[0m\"'s arity\n",tokenN,currentOp->arity,currentOp->symbol);
                     error = 2;
@@ -259,3 +259,6 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
     
     return 0;
 }
+
+
+

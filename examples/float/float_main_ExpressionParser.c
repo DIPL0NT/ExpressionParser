@@ -37,22 +37,22 @@ int main(){
 		{"Z+I+I"					,"2.000000"},
 		{"trisum 1 2 3"				,"6.000000"},
 		{"trisum(1,2,3)"			,"6.000000"},
-		{"trisum(1,2,3,4)"			,"evaluate_ExpressionTree(NULL)"}, //causes leak
+		{"trisum(1,2,3,4)"			,"evaluate_ExpressionTree(NULL)"},
 		{"trisum((1,2,3))"			,"6.000000"},
 		{"trisum((1,2),3)"			,"6.000000"},
 		{"trisum(1,(2,3))"			,"6.000000"},
 		{"trisum(1,(2),3)"			,"6.000000"},
-		{"trisum((1,2,3,4))"		,"evaluate_ExpressionTree(NULL)"}, //causes leak
-		{"trisum((1,2,3),4)"		,"evaluate_ExpressionTree(NULL)"}, //causes leak
-		{"trisum(1,(2,3,4))"		,"evaluate_ExpressionTree(NULL)"}, //causes leak
+		{"trisum((1,2,3,4))"		,"evaluate_ExpressionTree(NULL)"},
+		{"trisum((1,2,3),4)"		,"evaluate_ExpressionTree(NULL)"},
+		{"trisum(1,(2,3,4))"		,"evaluate_ExpressionTree(NULL)"},
 		{"trisum 1(2, 3)"			,"evaluate_ExpressionTree(NULL)"},
 		{"trisum (1,2)3"			,"evaluate_ExpressionTree(NULL)"},
 		{"trisum 1 (2, 3)"			,"6.000000"},
 		{"trisum (1,2) 3"			,"6.000000"},
-		{"qetrasum(1,(2,3,4))"		,"10.000000"},
-		{"qetrasum(1,2,(3,4))"		,"10.000000"},
-		{"qetrasum(1,(2,3),4)"		,"10.000000"},
-		{"qetrasum((1,2),(3,4))"	,"10.000000"},
+		{"tetrasum(1,(2,3,4))"		,"10.000000"},
+		{"tetrasum(1,2,(3,4))"		,"10.000000"},
+		{"tetrasum(1,(2,3),4)"		,"10.000000"},
+		{"tetrasum((1,2),(3,4))"	,"10.000000"},
 		{"2+2","3.000000"}
 	};
 	int n = sizeof(tests) / sizeof(ExpressionTestCase) ;

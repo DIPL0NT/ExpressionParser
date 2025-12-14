@@ -218,12 +218,11 @@ int addSymbolTo_SymbolTree(SymbolTreeNode *tree,const Operator *op){
         }
         else{
             //char found, continue on the branch by searching next symbol char
-            i++;
         }
 
     }
 
-    return -1; //should never get here
+    return -1; //should never even get here but i don't like not having a return at the end
 }
 
 //Moved the declaration to Operators_and_Operands_definitions.h
@@ -482,8 +481,4 @@ void print_ExpressionTokenVector(ExpressionToken_Vector *vec){
 	printf("\n");
 	return;
 }
-
-
-
-
 
