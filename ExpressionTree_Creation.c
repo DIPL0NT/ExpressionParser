@@ -131,20 +131,21 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
                 return error;
             }
 
-            if (subtree->type==LIST_NODE){ //subtree is LIST for sure , must instead check if its args are lists
+            //if (subtree->type==LIST_NODE){ //subtree is LIST for sure , must instead check if its args are lists
                 if (currentNode->type==OPERATOR_NODE && currentNode->args.count+subtree->args.count > currentOp->arity){
                     printf("\033[31mERROR\033[0m while parsing token number %d (argument count > \033[36m%d\033[0m = operator \"\033[36m%s\033[0m\"'s arity\n",tokenN,currentOp->arity,currentOp->symbol);
                     error = 2;
+                    free_ExpressionTreeNode(subtree);
                     return error;
                 }
                 
                 concat_ExpressionTreeNode_List(&currentNode->args,&subtree->args);
                 free(subtree);
-            }
-            else{ //useless
+            //}
+            /* else{ //useless
                 printf("I'M NOT USELESS\n");
                 addToTail_ExpressionTreeNode_List(&currentNode->args,subtree);
-            }
+            } */
 
             break;
         }
