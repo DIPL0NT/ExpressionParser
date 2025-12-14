@@ -29,15 +29,18 @@ void runExpressionTests(ExpressionTestCase *tests,int testsCount){
 			sprint_OperandValue(out,res);
 			if ( strcmp(tests[i].output,out) ){
 				fail++;
+				printf("\033[7m = %s\033[0m\n",out);
 				printf("\033[31mFAIL\033[0m test %d: \033[7mexpected %s but got %s\033[0m\n",i,tests[i].output,out);
 			}
 			else{
-				printf("\033[7m = %s\033[0m",tests[i].output);
+				printf("\033[7m = %s\033[0m\n",tests[i].output);
+				printf("\033[32mPASS\033[0m test %d\n",i);
 			}
 		}
 		else{
 			if ( !strcmp(tests[i].output,"evaluate_ExpressionTree(NULL)") ){
 				printf("\033[7m = %s\033[0m",tests[i].output);
+				printf("\033[32mPASS\033[0m test %d\n",i);
 			}
 			else {
 				fail++;
@@ -59,11 +62,13 @@ void runExpressionTests(ExpressionTestCase *tests,int testsCount){
 	if (!fail){
 		printf("\n\033[32mPASSED\033[0m all %d tests\n\n",testsCount);
 	}
-	else{
+	else if (testsCount){
 		printf("\n\033[31mFAILED\033[0m %d tests out of %d (%.2f%%)\n\n",fail,testsCount,100.0*((float)fail)/((float)testsCount));
+	}
+	else{
+		printf("\n\033[31mNO TESTS\033[0m testCount = 0\n\n");
 	}
 	
 	return;
 }
-
 

@@ -287,8 +287,22 @@ ExpressionToken get_next_ExpressionToken_from_ExpressionString(SymbolTreeNode *t
 	}
 
 	while (es->str[i]!=' ' && !isReservedChar(es->str[i]) && !isOperatorFirstChar(es->str[i])) i++ ;
-	if (i!=es->index){
+	if (i!=es->index){ //it's an Operand
+		if (es->index && es->str[es->index-1]==')'){ //can't have an Operand right after a closing parenthesis without a space in between
+			printf("Parsing error in expression string: %s (can't have an Operand right after a closing parenthesis without a space in between (position %d))\n",es->str,es->index);
+			tok.type = NULLTERM;
+			tok.data = NULL;
+			es->index = i;
+			return tok;
+		}
 		tmp = es->str[i];
+		if (tmp=='('){ //can't have an opening parenthesis right after an Operand without a space in between
+			printf("Parsing error in expression string: %s (can't have an opening parenthesis right after an Operand without a space in between (position %d))\n",es->str,i);
+			tok.type = NULLTERM;
+			tok.data = NULL;
+			es->index = i;
+			return tok;
+		}
 		es->str[i] = '\0';
 		Operand *operand = parseOperandStringFormatToVoidPtr(es->str+es->index);
 		if (!operand){
@@ -468,6 +482,7 @@ void print_ExpressionTokenVector(ExpressionToken_Vector *vec){
 	printf("\n");
 	return;
 }
+
 
 
 

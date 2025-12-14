@@ -65,7 +65,7 @@ const Operator powOp  	  = {"^"	 	 ,2     ,INFIX  ,2          , powFunc		};
 const Operator zeroOp 	  = {"Z"	 	 ,0     ,PREFIX ,3          , zeroFunc		};
 const Operator oneOp  	  = {"I"	 	 ,0     ,PREFIX ,3          , oneFunc		};
 const Operator trisumOp   = {"trisum"	 ,3     ,PREFIX ,2          , trisumFunc	};
-const Operator tetrasumOp = {"tetrasum"	 ,4     ,PREFIX ,2          , tetrasumFunc	};
+const Operator tetrasumOp = {"qetrasum"	 ,4     ,PREFIX ,2          , tetrasumFunc	};
 
 const Operator *operators[] = {&sumOp,&subOp,&multOp,&divOp,&sqrtOp,&powOp,&zeroOp,&oneOp,&trisumOp,&tetrasumOp};
 int operatorsCount = sizeof(operators) / sizeof(Operator*);
