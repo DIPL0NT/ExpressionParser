@@ -123,6 +123,8 @@ OperandVec_Wrapper evaluate_ExpressionTree(ExpressionTreeNode *tree){
 			result->values = (OPERAND_VALUE_TYPE*)realloc(result->values,(result->count+cur->treeNode->args.count)*sizeof(OPERAND_VALUE_TYPE));
 			//if (!result->values) ...
 			result->count = result->count + cur->treeNode->args.count ;
+            result_wrp.freeFlag = realloc(result_wrp.freeFlag ,result_wrp.vec->count *sizeof(int));
+            //if (!result_wrp.freeFlag) ...
 			ExpressionTreeNode_ListNode *cur2 = cur->treeNode->args.head ;
 			for (int k=0;k<cur->treeNode->args.count;k++){
                 //maybe rewrite with combineVecs
@@ -143,8 +145,8 @@ OperandVec_Wrapper evaluate_ExpressionTree(ExpressionTreeNode *tree){
 
 	if (tree->type==OPERATOR_NODE){ //should be the only remaning case
 		const Operator *op = (const Operator*)tree->token.data ;
-		if (result->count != op->arity ){
-			printf("\033[31mERROR\033[0m while evaluating expression tree beacuse of arity mismatch for an operator \"\033[36m%s033[0m\"\n",op->symbol);
+		if (result_wrp.vec->count != op->arity ){
+			printf("\033[31mERROR\033[0m while evaluating expression tree because of arity mismatch for an operator \"\033[36m%s033[0m\"\n",op->symbol);
 			release_OperandVec_Wrapper_values(result_wrp);
             free_OperandVec_Wrapper(result_wrp);
 			return (OperandVec_Wrapper){NULL,NULL};
@@ -248,7 +250,5 @@ void print_ExpressionTree(ExpressionTreeNode *tree){
 
     return;
 }
-
-
 
 

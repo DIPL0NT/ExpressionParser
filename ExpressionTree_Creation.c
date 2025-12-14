@@ -26,7 +26,17 @@ ExpressionTreeNode *create_LIST_ExpressionTreeNode_from_ExpressionToken_Vector(E
     while (!complete){
         listElement = alloc_ExpressionTreeNode(tree,INCOMPLETE_NODE,(ExpressionToken){OPENPAR,NULL});
         complete = fill_INCOMPLETE_ExpressionTreeNode(vec,listElement);
-        addToTail_ExpressionTreeNode_List(&tree->args,listElement);
+        //addToTail_ExpressionTreeNode_List(&tree->args,listElement);
+
+        //experiment
+        if (listElement->type==LIST_NODE){
+            concat_ExpressionTreeNode_List(&tree->args,&listElement->args);
+            free(listElement);
+        }
+        else{
+            addToTail_ExpressionTreeNode_List(&tree->args,listElement);
+        }
+
     }
     
     if (complete!=1){ //an error occurred
@@ -121,7 +131,7 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
                 return error;
             }
 
-            if (subtree->type==LIST_NODE){
+            if (subtree->type==LIST_NODE){ //subtree is LIST for sure , must instead check if its args are lists
                 if (currentNode->type==OPERATOR_NODE && currentNode->args.count+subtree->args.count > currentOp->arity){
                     printf("\033[31mERROR\033[0m while parsing token number %d (argument count > \033[36m%d\033[0m = operator \"\033[36m%s\033[0m\"'s arity\n",tokenN,currentOp->arity,currentOp->symbol);
                     error = 2;
@@ -131,7 +141,8 @@ int fill_INCOMPLETE_ExpressionTreeNode(ExpressionToken_Vector *vec,ExpressionTre
                 concat_ExpressionTreeNode_List(&currentNode->args,&subtree->args);
                 free(subtree);
             }
-            else{
+            else{ //useless
+                printf("I'M NOT USELESS\n");
                 addToTail_ExpressionTreeNode_List(&currentNode->args,subtree);
             }
 

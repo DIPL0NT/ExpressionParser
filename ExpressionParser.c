@@ -29,15 +29,20 @@ void runExpressionTests(ExpressionTestCase *tests,int testsCount){
 			sprint_OperandValue(out,res);
 			if ( strcmp(tests[i].output,out) ){
 				fail++;
-				printf("\033[31mFAIL\033[0m test %d: expected %s but got %s\n",i,tests[i].output,out);
+				printf("\033[31mFAIL\033[0m test %d: \033[7mexpected %s but got %s\033[0m\n",i,tests[i].output,out);
 			}
 			else{
 				printf("\033[7m = %s\033[0m",tests[i].output);
 			}
 		}
 		else{
-			fail++;
-			printf("\033[31mFAIL\033[0m test %d: expected %s but failed to evaluate expression\n",i,tests[i].output);
+			if ( !strcmp(tests[i].output,"evaluate_ExpressionTree(NULL)") ){
+				printf("\033[7m = %s\033[0m",tests[i].output);
+			}
+			else {
+				fail++;
+				printf("\033[31mFAIL\033[0m test %d: \033[7mexpected %s but failed to evaluate expression\033[0m\n",i,tests[i].output);
+			}
 		}
 		
 		free(es.str);
